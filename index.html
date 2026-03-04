@@ -1295,13 +1295,13 @@
         const timeTaken = stopLevelTimer();
         let msg = "CHECKOUT!";
 
-        let pathFeedback = `in ${timeTaken}s`;
+        let pathFeedback = "";
         const optimalPath = getCheckoutPath(state.checkoutTarget, 3);
         if (optimalPath) {
           const userPathStr = currentThrowPath.join(' ');
           const optPathStr = optimalPath.join(' ');
           if (userPathStr !== optPathStr && state.levelAttempts === 1) {
-            pathFeedback = `In ${timeTaken}s\nTipp:\n${optPathStr} wäre optimal gewesen!`;
+            pathFeedback = `Tipp:\n${optPathStr} wäre optimal gewesen!`;
           }
         }
 
