@@ -1,0 +1,1779 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0A0D12">
+  <title>Dart Checkout Trainer</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #0A0D12;
+      --text-color: #F8F9FA;
+      --accent: #E3292E;
+      --accent-green: #309F6A;
+      --board-bg: #1A1D24;
+      --primary-font: system-ui, -apple-system, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      touch-action: manipulation;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: var(--primary-font);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      min-height: 100dvh;
+      touch-action: pan-y;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 20px;
+      font-size: 15px;
+      font-weight: 500;
+      background: rgba(255, 255, 255, 0.05);
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .badges {
+      display: flex;
+      gap: 8px;
+    }
+
+    .badge {
+      background: linear-gradient(135deg, #FFD700, #FDB931);
+      color: black;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    }
+
+    .main-display {
+      text-align: center;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      padding-bottom: 20px;
+    }
+
+    .target-score {
+      font-size: 90px;
+      font-weight: 900;
+      line-height: 1;
+      margin: 15px 0 10px 0;
+      letter-spacing: -2px;
+      text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .darts-left {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 25px;
+    }
+
+    .dart {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--text-color);
+      opacity: 0.15;
+      transition: opacity 0.3s;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .dart.active {
+      opacity: 1;
+      background: #FFD700;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    }
+
+    .dart-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      width: 40px;
+    }
+
+    .dart-text {
+      font-size: 14px;
+      font-weight: 700;
+      color: #FFD700;
+      height: 16px;
+      /* Prevents layout shift */
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+    }
+
+    .checkout-info {
+      min-height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 5px;
+      padding: 0 20px;
+    }
+
+    .checkout-path {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      filter: blur(8px);
+      transition: filter 0.4s ease, opacity 0.4s ease;
+      opacity: 0.8;
+    }
+
+    .checkout-path.revealed {
+      filter: blur(0);
+      opacity: 1;
+    }
+
+    .reveal-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: var(--text-color);
+      border-radius: 20px;
+      padding: 8px 16px;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    .reveal-btn:active {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .board-container {
+      position: relative;
+      width: 90vw;
+      height: 90vw;
+      max-height: 50vh;
+      max-width: 50vh;
+      margin: 0 auto;
+      overflow: hidden;
+      border-radius: 50%;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(0, 0, 0, 0.8);
+      background: var(--board-bg);
+      touch-action: none;
+    }
+
+    .dartboard {
+      width: 100%;
+      height: 100%;
+      transform-origin: center center;
+      transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .dartboard.zoomed {
+      transform: scale(3.5);
+    }
+
+    .dartboard path,
+    .dartboard circle {
+      stroke: none;
+      cursor: crosshair;
+      transition: filter 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .dartboard path:active,
+    .dartboard circle:active {
+      filter: brightness(1.3);
+    }
+
+    .dartboard .wire {
+      stroke: #D3D3D3;
+      stroke-width: 1.2;
+      fill: none;
+      pointer-events: none;
+      opacity: 0.8;
+    }
+
+    .dartboard text {
+      pointer-events: none;
+    }
+
+    .game-area {
+      display: flex;
+      flex-direction: column;
+      /* Force stack layout for all devices */
+      align-items: center;
+      gap: 30px;
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 10px;
+    }
+
+    .side-panel {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      height: 300px;
+      /* same height approx as max-height of board for desktop */
+      display: flex;
+      flex-direction: column;
+      padding: 15px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .side-panel-title {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #888;
+      margin-bottom: 12px;
+      font-weight: 600;
+      text-align: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 8px;
+    }
+
+    /* Level Panel (Left) */
+    .level-val {
+      font-size: 60px;
+      font-weight: 900;
+      text-align: center;
+      color: var(--accent-green);
+      margin: auto 0;
+      line-height: 1;
+      text-shadow: 0 0 15px rgba(48, 159, 106, 0.3);
+    }
+
+    .level-progress-wrap {
+      height: 8px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: auto;
+    }
+
+    .level-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-green), #4FE395);
+      width: 0%;
+      transition: width 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .level-sub {
+      font-size: 12px;
+      text-align: center;
+      margin-top: 8px;
+      color: #BBB;
+    }
+
+    /* History Panel (Right) */
+    .history-list {
+      flex-grow: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-right: 5px;
+    }
+
+    /* Scrollbar History */
+    .history-list::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .history-list::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+    }
+
+    .history-item {
+      font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 8px 10px;
+      border-radius: 6px;
+      border-left: 3px solid var(--accent-green);
+    }
+
+    .history-item.bust {
+      border-left-color: var(--accent);
+      opacity: 0.7;
+    }
+
+    .h-score {
+      font-weight: 700;
+      color: white;
+    }
+
+    .h-time {
+      font-family: monospace;
+      color: #BBB;
+      font-size: 12px;
+    }
+
+    @media (max-width: 768px) {
+      .game-area {
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .side-panel {
+        width: 90vw;
+        height: 120px;
+        /* smaller for mobile list */
+      }
+
+      .history-list {
+        flex-direction: row;
+        overflow-x: auto;
+        overflow-y: hidden;
+      }
+
+      .history-item {
+        flex-direction: column;
+        min-width: 80px;
+        justify-content: center;
+        gap: 4px;
+      }
+
+      .level-val {
+        font-size: 40px;
+        margin: 10px 0;
+      }
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      padding: 15px 20px;
+      margin-top: auto;
+    }
+
+    .control-btn {
+      padding: 12px 24px;
+      background: rgba(255, 255, 255, 0.08);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      flex: 1;
+      max-width: 180px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .control-btn:active {
+      background: rgba(255, 255, 255, 0.15);
+      transform: scale(0.96);
+    }
+
+    .control-btn:disabled {
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    .control-btn:disabled {
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    .msg-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(10, 13, 18, 0.95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .msg-overlay.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .msg-content-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 30px;
+    }
+
+    .msg-content-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 30px;
+    }
+
+    .msg-title {
+      font-size: 55px;
+      font-weight: 900;
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-align: center;
+    }
+
+    .msg-sub {
+      font-size: 22px;
+      color: #BBB;
+      margin-top: 10px;
+    }
+
+    .msg-win .msg-title {
+      color: var(--accent-green);
+      text-shadow: 0 0 20px rgba(48, 159, 106, 0.5);
+    }
+
+    .msg-bust .msg-title {
+      color: var(--accent);
+      text-shadow: 0 0 20px rgba(227, 41, 46, 0.5);
+    }
+
+    .msg-continue-btn {
+      margin-top: 15px;
+      padding: 12px 40px;
+      background: var(--accent-green);
+      color: #FFF;
+      border: none;
+      border-radius: 30px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(48, 159, 106, 0.4);
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    .msg-continue-btn:active {
+      transform: scale(0.95);
+      background: #258053;
+    }
+
+    /* Countdown Overlay */
+    #countdown-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(10, 13, 18, 0.95);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 150;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    #countdown-overlay.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    #countdown-title {
+      font-family: 'Bangers', cursive;
+      font-size: 50px;
+      color: #FFD700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 4px 4px 0px rgba(0, 0, 0, 0.8);
+      transform: rotate(-2deg);
+    }
+
+    #countdown-number {
+      font-family: 'Bangers', cursive;
+      font-size: 130px;
+      /* Reduced from 160px for mobile */
+      color: #FFF;
+      line-height: 1;
+      text-shadow: 4px 4px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 8px 8px 0px rgba(0, 0, 0, 0.8);
+      transform: scale(0.5);
+      opacity: 0;
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+      max-width: 100vw;
+      overflow: visible;
+      text-align: center;
+    }
+
+    #countdown-number.pop {
+      transform: scale(1);
+      opacity: 1;
+    }
+
+    /* Menu View Styles */
+    #menu-view {
+      display: flex;
+      /* overridden by JS initially */
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      gap: 25px;
+      padding: 20px;
+      background: linear-gradient(rgba(10, 13, 18, 0.6), rgba(10, 13, 18, 0.9)), url('bg.png') center/cover no-repeat;
+      z-index: 200;
+      width: 100%;
+    }
+
+    .menu-mode-btn {
+      font-family: 'Bangers', cursive;
+      padding: 15px 25px;
+      background: #FFD700;
+      color: #000;
+      border: 4px solid #000;
+      border-radius: 8px;
+      font-size: 28px;
+      letter-spacing: 1px;
+      cursor: pointer;
+      box-shadow: 6px 6px 0px #000;
+      width: 100%;
+      max-width: 320px;
+      transition: transform 0.1s, box-shadow 0.1s;
+      text-transform: uppercase;
+    }
+
+    .menu-mode-btn:active {
+      transform: translate(4px, 4px);
+      box-shadow: 2px 2px 0px #000;
+      background: #E6C200;
+    }
+
+    .comic-title {
+      font-family: 'Bangers', cursive;
+      font-size: 65px;
+      margin-bottom: 20px;
+      color: #FFD700;
+      text-shadow: 3px 3px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 6px 6px 0px rgba(0, 0, 0, 0.8);
+      text-align: center;
+      line-height: 1.1;
+      letter-spacing: 3px;
+      transform: rotate(-2deg);
+    }
+
+    .header-btn {
+      background: transparent;
+      border: none;
+      color: var(--accent-green);
+      font-size: 24px;
+      cursor: pointer;
+      padding: 0 10px;
+    }
+
+    /* Zoom Reticle */
+    #zoom-reticle {
+      position: fixed;
+      width: 90px;
+      height: 90px;
+      border: 2px solid rgba(255, 215, 0, 0.6);
+      border-radius: 50%;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      z-index: 9999;
+      display: none;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    }
+
+    #zoom-reticle::before,
+    #zoom-reticle::after {
+      content: '';
+      position: absolute;
+      background: rgba(255, 215, 0, 0.8);
+    }
+
+    #zoom-reticle::before {
+      top: 50%;
+      left: -10px;
+      right: -10px;
+      height: 2px;
+      transform: translateY(-50%);
+    }
+
+    #zoom-reticle::after {
+      left: 50%;
+      top: -10px;
+      bottom: -10px;
+      width: 2px;
+      transform: translateX(-50%);
+    }
+
+    /* Numpad Input View */
+    .numpad-container {
+      display: none;
+      /* toggled via JS */
+      width: 100%;
+      max-width: 350px;
+      margin: 0 auto;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .numpad-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 6px;
+      width: 100%;
+    }
+
+    .numpad-btn {
+      background: #2A2D35;
+      color: #FFF;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 6px 0;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.1s;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .numpad-btn:active {
+      transform: scale(0.95);
+      background: #4A4D55;
+    }
+
+    .numpad-btn.btn-red {
+      color: #E3292E;
+    }
+
+    .numpad-btn.btn-green {
+      color: #309F6A;
+    }
+
+    .numpad-btn.btn-bull {
+      grid-column: span 2;
+      background: #E3292E;
+    }
+
+    .numpad-btn.btn-25 {
+      grid-column: span 2;
+      background: #309F6A;
+    }
+
+    .numpad-btn.btn-miss {
+      grid-column: span 2;
+      background: #18181A;
+    }
+
+    /* Stats View */
+    #stats-view {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 20px;
+      padding: 30px;
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 20px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: #888;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: #FFF;
+      font-family: 'Bangers', cursive;
+      letter-spacing: 2px;
+    }
+
+    /* Flexbox Progress Bar */
+    .stat-bar-bg {
+      width: 100%;
+      height: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      margin-top: 10px;
+      overflow: hidden;
+      display: flex;
+      /* Key for flexbox bar */
+    }
+
+    .stat-bar-fill {
+      height: 100%;
+      background: var(--accent-green);
+      transition: width 0.5s ease;
+    }
+
+    /* Simple Numpad (Minusrechnen) */
+    .simple-numpad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      width: 100%;
+      max-width: 300px;
+    }
+
+    .simple-btn {
+      background: #2A2D35;
+      color: #FFF;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      font-size: 24px;
+      font-weight: 700;
+      padding: 15px 0;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.1s;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .simple-btn:active {
+      transform: scale(0.95);
+      background: #4A4D55;
+    }
+
+    .simple-btn.btn-del {
+      background: #E3292E;
+    }
+
+    .simple-btn.btn-enter {
+      background: #309F6A;
+    }
+
+    /* Path Option Buttons */
+    .path-option-btn {
+      background: #2A2D35;
+      color: #FFF;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      font-size: 24px;
+      font-weight: 700;
+      padding: 20px 0;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      width: 100%;
+    }
+
+    .path-option-btn:active {
+      transform: scale(0.96);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Menu View -->
+  <div id="menu-view">
+    <h1 class="comic-title">DART CHECKOUT<br>TRAINER</h1>
+    <button class="menu-mode-btn" id="btn-mode-2">2-Dart Finish</button>
+    <button class="menu-mode-btn" id="btn-mode-3">3-Dart Finish</button>
+    <button class="menu-mode-btn" id="btn-mode-minus">Minusrechnen</button>
+    <button class="menu-mode-btn" id="btn-mode-pathgame">Der richtige Weg</button>
+  </div>
+
+
+  <header id="game-header"
+    style="display:none; justify-content: center; align-items: center; width: 100%; max-width: 900px; margin: 0 auto; gap: 10px;">
+    <button id="btn-back-menu"
+      style="background: rgba(255,255,255,0.1); border: none; color: #FFF; font-size: 14px; cursor: pointer; padding: 6px 16px; border-radius: 8px; font-weight: bold; transition: background 0.2s; text-transform: uppercase;">Zurück
+      ins Hauptmenü</button>
+
+    <button id="btn-toggle-input"
+      style="background: rgba(255,255,255,0.1); border: none; color: #FFF; font-size: 14px; cursor: pointer; padding: 6px 16px; border-radius: 8px; font-weight: bold; transition: background 0.2s; display: flex; align-items: center; gap: 6px;">
+      Eingabe: <span id="input-mode-icon">🎯</span>
+    </button>
+  </header>
+
+  <div class="main-display" id="game-main" style="display:none;">
+    <div class="target-score" id="ui-score">170</div>
+
+    <div class="darts-left">
+      <div class="dart-container" id="dart-wrap-1">
+        <div class="dart active" id="dart-1"></div>
+        <div class="dart-text" id="dart-text-1"></div>
+      </div>
+      <div class="dart-container" id="dart-wrap-2">
+        <div class="dart active" id="dart-2"></div>
+        <div class="dart-text" id="dart-text-2"></div>
+      </div>
+      <div class="dart-container" id="dart-wrap-3">
+        <div class="dart active" id="dart-3"></div>
+        <div class="dart-text" id="dart-text-3"></div>
+      </div>
+    </div>
+
+    <div class="checkout-info">
+      <div class="checkout-path" id="ui-path">T20 T20 Bull</div>
+      <button class="reveal-btn" id="btn-reveal">Weg zeigen</button>
+    </div>
+
+    <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin: 10px 0 5px 0;">
+      <button id="btn-undo" disabled
+        style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #BBB; border-radius: 8px; cursor: pointer; padding: 5px 12px; font-size: 16px; transition: background 0.2s;">↩️</button>
+    </div>
+
+    <div class="game-area">
+      <!-- Center: Dartboard / Numpad -->
+      <div
+        style="position: relative; width: 100%; max-width: 400px; display: flex; justify-content: center; align-items: flex-start;">
+        <div class="board-container" id="board-wrap">
+          <svg class="dartboard" id="svg-board" viewBox="-210 -210 420 420">
+            <!-- Generated via JS -->
+          </svg>
+        </div>
+
+        <div class="numpad-container" id="numpad-wrap">
+          <div class="numpad-grid" id="numpad-grid">
+            <!-- Generated via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Zoom Crosshair for Mobile -->
+      <div id="zoom-reticle"></div>
+
+    </div>
+
+    <div class="controls" style="display:none;">
+    </div>
+  </div>
+
+  <div class="msg-overlay" id="msg-overlay">
+    <div class="msg-content-wrap">
+      <div style="text-align:center;">
+        <h1 class="msg-title" id="msg-title">BUST!</h1>
+        <p class="msg-sub" id="msg-sub" style="white-space: pre-wrap;">No Points Scored</p>
+      </div>
+      <button class="msg-continue-btn" id="btn-msg-continue">Weiter</button>
+    </div>
+  </div>
+
+
+  <!-- Minusrechnen View -->
+  <div id="minus-view"
+    style="display:none; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; padding: 20px;">
+    <h1 class="comic-title" style="font-size: 40px; margin-bottom: 30px;">Minusrechnen</h1>
+
+    <div
+      style="font-size: 55px; font-weight: 900; color: #FFF; margin-bottom: 30px; font-family: 'Bangers', cursive; letter-spacing: 2px; text-shadow: 2px 2px 0 #000;">
+      <span id="minus-task-start">120</span> - <span id="minus-task-sub" style="color: var(--accent);">60</span> =
+      <span id="minus-task-input" style="color: var(--accent-green);">?</span>
+    </div>
+
+    <div class="simple-numpad">
+      <div class="simple-btn" data-val="1">1</div>
+      <div class="simple-btn" data-val="2">2</div>
+      <div class="simple-btn" data-val="3">3</div>
+      <div class="simple-btn" data-val="4">4</div>
+      <div class="simple-btn" data-val="5">5</div>
+      <div class="simple-btn" data-val="6">6</div>
+      <div class="simple-btn" data-val="7">7</div>
+      <div class="simple-btn" data-val="8">8</div>
+      <div class="simple-btn" data-val="9">9</div>
+      <div class="simple-btn btn-del" data-action="del">DEL</div>
+      <div class="simple-btn" data-val="0">0</div>
+      <div class="simple-btn btn-enter" data-action="enter">OK</div>
+    </div>
+
+  </div>
+
+  <!-- Der richtige Weg View -->
+  <div id="path-view"
+    style="display:none; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; padding: 20px;">
+    <h1 class="comic-title" style="font-size: 36px; margin-bottom: 20px;">Der richtige Weg</h1>
+
+    <div style="font-size: 16px; color: #888; text-transform: uppercase; font-weight: 600; margin-bottom: 5px;">
+      Checkout
+      Score</div>
+    <div id="path-target"
+      style="font-size: 80px; font-weight: 900; color: #FFF; margin-bottom: 40px; font-family: 'Bangers', cursive; text-shadow: 2px 2px 0 #000;">
+      130</div>
+
+    <div style="display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 350px;"
+      id="path-options-container">
+      <button class="path-option-btn" id="btn-path-0">T20 T20 D5</button>
+      <button class="path-option-btn" id="btn-path-1">T20 T10 D20</button>
+      <button class="path-option-btn" id="btn-path-2">T20 D20</button>
+    </div>
+
+  </div>
+
+  <script>
+    // --- Constants & Global Elements ---
+    const CONSTANTS = {
+      BOGEY: [169, 168, 166, 165, 163, 162, 159],
+      BOGEY_2DART: [109, 108, 106, 105, 103, 102, 99],
+      OPTIMAL_CHECKOUTS: {
+        170: ['T20', 'T20', 'Bull'], 167: ['T20', 'T19', 'Bull'], 164: ['T20', 'T18', 'Bull'],
+        161: ['T20', 'T17', 'Bull'], 160: ['T20', 'T20', 'D20'], 158: ['T20', 'T20', 'D19'],
+        157: ['T20', 'T19', 'D20'], 156: ['T20', 'T20', 'D18'], 155: ['T20', 'T19', 'D19'],
+        154: ['T20', 'T18', 'D20'], 153: ['T20', 'T19', 'D18'], 152: ['T20', 'T20', 'D16'],
+        151: ['T20', 'T17', 'D20'], 150: ['T20', 'T18', 'D18'], 149: ['T20', 'T19', 'D16'],
+        148: ['T20', 'T20', 'D14'], 147: ['T20', 'T17', 'D18'], 146: ['T20', 'T18', 'D16'],
+        145: ['T20', 'T15', 'D20'], 144: ['T20', 'T20', 'D12'], 143: ['T20', 'T17', 'D16'],
+        142: ['T20', 'T14', 'D20'], 141: ['T20', 'T19', 'D12'], 140: ['T20', 'T20', 'D10'],
+        139: ['T20', 'T13', 'D20'], 138: ['T20', 'T18', 'D12'], 137: ['T20', 'T19', 'D10'],
+        136: ['T20', 'T20', 'D8'], 135: ['Bull', 'T15', 'D20'], 134: ['T20', 'T14', 'D16'],
+        133: ['T20', 'T19', 'D8'], 132: ['Bull', 'Bull', 'D16'], 131: ['T20', 'T13', 'D16'],
+        130: ['T20', '20', 'Bull'], 129: ['T19', 'T16', 'D12'], 128: ['T18', 'T14', 'D16'],
+        127: ['T20', 'T17', 'D8'], 126: ['T19', 'T15', 'D12'], 125: ['25', 'T20', 'D20'],
+        124: ['T20', 'T14', 'D11'], 123: ['T19', 'T16', 'D9'], 122: ['T18', '20', 'Bull'],
+        121: ['T20', '11', 'Bull'], 120: ['T20', '20', 'D20'], 119: ['T19', 'T10', 'D16'],
+        118: ['T20', '18', 'D20'], 117: ['T20', '17', 'D20'], 116: ['T20', '16', 'D20'],
+        115: ['T20', '15', 'D20'], 114: ['T20', '14', 'D20'], 113: ['T20', '13', 'D20'],
+        112: ['T20', '12', 'D20'], 111: ['T20', '11', 'D20'], 110: ['T20', 'Bull'],
+        109: ['T19', '12', 'D20'], 108: ['T19', '11', 'D20'], 107: ['T19', 'Bull'],
+        106: ['T20', '10', 'D18'], 105: ['T19', '16', 'D16'], 104: ['T18', 'Bull'],
+        103: ['T19', '10', 'D18'], 102: ['T20', '10', 'D16'], 101: ['T17', 'Bull'],
+        100: ['T20', 'D20'], 99: ['T19', '10', 'D16'], 98: ['T20', 'D19'],
+        97: ['T19', 'D20'], 96: ['T20', 'D18'], 95: ['T19', 'D19'],
+        94: ['T18', 'D20'], 93: ['T19', 'D18'], 92: ['T20', 'D16'],
+        91: ['T17', 'D20'], 90: ['T20', 'D15'], 89: ['T19', 'D16'],
+        88: ['T16', 'D20'], 87: ['T17', 'D18'], 86: ['T18', 'D16'],
+        85: ['T15', 'D20'], 84: ['T20', 'D12'], 83: ['T17', 'D16'],
+        82: ['T14', 'D20'], 81: ['T19', 'D12'], 80: ['T20', 'D10'],
+        79: ['T13', 'D20'], 78: ['T18', 'D12'], 77: ['T19', 'D10'],
+        76: ['T20', 'D8'], 75: ['T17', 'D12'], 74: ['T14', 'D16'],
+        73: ['T19', 'D8'], 72: ['T16', 'D12'], 71: ['T13', 'D16'],
+        70: ['T18', 'D8'], 69: ['19', 'Bull'], 68: ['T20', 'D4'], 67: ['17', 'Bull'],
+        66: ['T10', 'D18'], 65: ['25', 'D20'], 64: ['16', '16', 'D16'], 63: ['T13', 'D12'],
+        62: ['T10', 'D16'], 61: ['25', 'D18'], 60: ['20', 'D20']
+      }
+    };
+
+    let DOM = {};
+
+    // --- State Models ---
+    let state = {
+      gameMode: '3-dart',
+      checkoutTarget: null,
+      currentScore: 0,
+      dartsLeft: 3,
+      levelAttempts: 1,
+      stats: { checkouts: 0, totalXP: 0 },
+      playerLevel: 1,
+      playerXP: 0,
+      inputMode: 'dartboard', // 'dartboard' or 'numpad'
+      remainingLevels: [], // pool of checkouts
+      globalStats: { totalRounds: 0, firstTrySuccesses: 0, sumCheckoutTimes: 0, successfulCheckouts: 0 } // Persistent stats
+    };
+    let history = [];
+    let currentThrowPath = [];
+    let levelStartTime = 0;
+    let timerInterval = null;
+    let sessionLog = [];
+    let timerElapsedTime = 0;
+    let isTimerPaused = false;
+    let minusGameState = { expected: 0, currentInput: "" };
+    let pathGameState = { expectedIdx: 0 };
+
+    // --- Checkout Alg & Data ---
+    function getCheckoutPath(score, dartsLeft) {
+      if (score <= 0 || dartsLeft <= 0) return null;
+
+      if (CONSTANTS.OPTIMAL_CHECKOUTS[score]) {
+        const opt = CONSTANTS.OPTIMAL_CHECKOUTS[score];
+        // Only suggest path if user has enough darts remaining
+        if (opt.length <= dartsLeft) return opt;
+      }
+
+      // Dynamic generation fallback
+      const doubles = [], singles = [], triples = [];
+      for (let i = 20; i >= 1; i--) {
+        doubles.push({ label: 'D' + i, val: i * 2 });
+        singles.push({ label: '' + i, val: i });
+        triples.push({ label: 'T' + i, val: i * 3 });
+      }
+      doubles.push({ label: 'Bull', val: 50 });
+      singles.push({ label: '25', val: 25 });
+
+      const dPref = ['D20', 'D16', 'D18', 'D12', 'D8', 'D10', 'D4', 'D2', 'D14', 'D6', 'Bull'];
+      doubles.sort((a, b) => {
+        let ia = dPref.indexOf(a.label), ib = dPref.indexOf(b.label);
+        if (ia === -1) ia = 99; if (ib === -1) ib = 99; return ia - ib;
+      });
+
+      if (dartsLeft >= 1) {
+        for (let d of doubles) if (d.val === score) return [d.label];
+      }
+      if (dartsLeft >= 2) {
+        for (let s of singles) for (let d of doubles) if (s.val + d.val === score) return [s.label, d.label];
+        for (let t of triples) for (let d of doubles) if (t.val + d.val === score) return [t.label, d.label];
+      }
+      if (dartsLeft === 3) {
+        for (let t1 of triples) for (let t2 of triples) for (let d of doubles)
+          if (t1.val + t2.val + d.val === score) return [t1.label, t2.label, d.label];
+        for (let t of triples) for (let s of singles) for (let d of doubles)
+          if (t.val + s.val + d.val === score) return [t.label, s.label, d.label];
+        for (let s1 of singles) for (let s2 of singles) for (let d of doubles)
+          if (s1.val + s2.val + d.val === score) return [s1.label, s2.label, d.label];
+      }
+      return null;
+    }
+
+    function setGameMode(mode) {
+      state.gameMode = mode;
+      state.remainingLevels = []; // Reset targets so we rebuild them for the selected mode
+      state.checkoutTarget = getNextCheckoutTask();
+      state.currentScore = state.checkoutTarget;
+      state.dartsLeft = mode === '2-dart' ? 2 : 3;
+      state.levelAttempts = 1;
+      currentThrowPath = [];
+
+      DOM.menuView.style.display = 'none';
+      DOM.gameHeader.style.display = 'flex';
+      DOM.gameMain.style.display = 'block';
+
+      saveState();
+      updateUI();
+      startLevelTimer();
+    }
+
+    function getNextCheckoutTask() {
+      if (!state.remainingLevels || state.remainingLevels.length === 0) {
+        state.remainingLevels = [];
+        if (state.gameMode === '2-dart') {
+          for (let i = 2; i <= 110; i++) {
+            if (!CONSTANTS.BOGEY_2DART.includes(i)) state.remainingLevels.push(i);
+          }
+        } else {
+          for (let i = 111; i <= 170; i++) {
+            if (!CONSTANTS.BOGEY.includes(i)) state.remainingLevels.push(i);
+          }
+        }
+        for (let i = state.remainingLevels.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [state.remainingLevels[i], state.remainingLevels[j]] = [state.remainingLevels[j], state.remainingLevels[i]];
+        }
+      }
+      return state.remainingLevels.pop() || (state.gameMode === '2-dart' ? 110 : 170);
+    }
+
+    function showMenu() {
+      stopLevelTimer();
+      if (DOM.menuView) DOM.menuView.style.display = 'flex';
+      if (DOM.gameHeader) DOM.gameHeader.style.display = 'none';
+      if (DOM.gameMain) DOM.gameMain.style.display = 'none';
+      if (DOM.minusView) DOM.minusView.style.display = 'none';
+      if (DOM.pathView) DOM.pathView.style.display = 'none';
+      history = [];
+    }
+
+    function startMinusGame() {
+      DOM.menuView.style.display = 'none';
+      DOM.gameHeader.style.display = 'flex';
+      DOM.btnToggleInput.style.display = 'none';
+      DOM.gameMain.style.display = 'none';
+      if (DOM.pathView) DOM.pathView.style.display = 'none';
+      DOM.minusView.style.display = 'flex';
+      nextMinusTask();
+    }
+
+    function nextMinusTask() {
+      let target = Math.floor(Math.random() * (170 - 60 + 1)) + 60;
+      let subVal = 0;
+
+      let subType = Math.floor(Math.random() * 3);
+      let baseNum = Math.floor(Math.random() * 20) + 1;
+
+      if (subType === 0) subVal = baseNum;
+      else if (subType === 1) subVal = baseNum * 2;
+      else if (subType === 2) subVal = baseNum * 3;
+
+      if (subVal >= target) subVal = Math.floor(target / 2);
+
+      minusGameState.expected = target - subVal;
+      minusGameState.currentInput = "";
+
+      DOM.minusTaskStart.innerText = target;
+      DOM.minusTaskSub.innerText = subVal;
+      DOM.minusTaskInput.innerText = "?";
+      DOM.minusTaskInput.style.color = 'var(--accent-green)';
+    }
+
+    function startPathGame() {
+      DOM.menuView.style.display = 'none';
+      DOM.gameHeader.style.display = 'flex';
+      DOM.btnToggleInput.style.display = 'none';
+      DOM.gameMain.style.display = 'none';
+      if (DOM.minusView) DOM.minusView.style.display = 'none';
+      DOM.pathView.style.display = 'flex';
+      nextPathTask();
+    }
+
+    function getDecoyPath(score) {
+      const doubles = ['D20', 'D16', 'D18', 'D12', 'D10', 'D8', 'Bull', 'D4', 'D2'];
+      const highTriples = ['T20', 'T19', 'T18', 'T17'];
+      const singles = ['20', '19', '18', '17', '16'];
+
+      let t1 = highTriples[Math.floor(Math.random() * highTriples.length)];
+      let t2 = highTriples[Math.floor(Math.random() * highTriples.length)];
+      let d = doubles[Math.floor(Math.random() * doubles.length)];
+
+      let decoy = [t1, t2, d];
+      if (score < 100) decoy = [singles[Math.floor(Math.random() * singles.length)], d];
+      if (score <= 40) decoy = [d];
+
+      return decoy.join(' ');
+    }
+
+    function generateDecoyPaths(score, correctPathStr) {
+      let decoys = new Set();
+      let attempts = 0;
+      while (decoys.size < 2 && attempts < 50) {
+        attempts++;
+        let p = getDecoyPath(score);
+        if (p !== correctPathStr) decoys.add(p);
+      }
+      return Array.from(decoys);
+    }
+
+    function nextPathTask() {
+      const validTargets = Object.keys(CONSTANTS.OPTIMAL_CHECKOUTS).map(Number).filter(x => x >= 40 && x <= 170 && !CONSTANTS.BOGEY.includes(x));
+      const target = validTargets[Math.floor(Math.random() * validTargets.length)];
+
+      const correctPathArr = CONSTANTS.OPTIMAL_CHECKOUTS[target];
+      if (!correctPathArr) return nextPathTask();
+
+      const correctStr = correctPathArr.join(' ');
+      const decoys = generateDecoyPaths(target, correctStr);
+
+      const allOptions = [correctStr, decoys[0] || 'T20 T20 D5', decoys[1] || 'T19 T19 D12'];
+
+      // Shuffle array in place
+      for (let i = allOptions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [allOptions[i], allOptions[j]] = [allOptions[j], allOptions[i]];
+      }
+
+      const correctIdx = allOptions.indexOf(correctStr);
+      pathGameState.expectedIdx = correctIdx;
+
+      DOM.pathTarget.innerText = target;
+
+      for (let i = 0; i < 3; i++) {
+        const btn = document.getElementById('btn-path-' + i);
+        if (btn) {
+          btn.innerText = allOptions[i];
+          btn.style.background = '#2A2D35';
+          btn.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+          btn.disabled = false;
+        }
+      }
+    }
+
+    function setGameMode(mode) {
+      state.gameMode = mode;
+      state.remainingLevels = [];
+      state.checkoutTarget = getNextCheckoutTask();
+      state.currentScore = state.checkoutTarget;
+
+      let initialDarts = state.gameMode === '2-dart' ? 2 : 3;
+      state.dartsLeft = initialDarts;
+      state.levelAttempts = 1;
+
+      saveState();
+      DOM.menuView.style.display = 'none';
+      DOM.gameHeader.style.display = 'flex';
+      DOM.btnToggleInput.style.display = 'flex';
+      DOM.gameMain.style.display = 'flex';
+      updateUI();
+      startLevelTimer();
+    }
+
+    function loadState() {
+      let saved = null;
+      try {
+        saved = localStorage.getItem('dartTrainerV1');
+      } catch (e) {
+        console.warn('LocalStorage is disabled. Starting fresh session.', e);
+      }
+
+      if (saved) {
+        try {
+          state = JSON.parse(saved);
+        } catch (e) {
+          console.error("Daten korrupt, setze zurück.", e);
+        }
+      }
+      if (!state.levelAttempts) state.levelAttempts = 1;
+      if (!state.remainingLevels) state.remainingLevels = [];
+      if (!state.gameMode) state.gameMode = '3-dart';
+      if (!state.inputMode) state.inputMode = 'dartboard';
+
+      applyInputMode(); // Ensure UI reflects the saved or default state
+
+      // Always start on Menu Screen
+      showMenu();
+    }
+
+    function startLevelTimer() {
+      levelStartTime = Date.now();
+      currentThrowPath = [];
+    }
+
+    function stopLevelTimer() {
+      return "0.0";
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem('dartTrainerV1', JSON.stringify(state));
+      } catch (e) {
+        console.warn('LocalStorage is disabled or full. State not saved.', e);
+      }
+    }
+
+    function handleThrow(val, mult, name) {
+      let rawScore = val * mult;
+      history.push(JSON.parse(JSON.stringify(state)));
+      DOM.btnUndo.disabled = false;
+      currentThrowPath.push(name);
+
+      state.dartsLeft--;
+      let newScore = state.currentScore - rawScore;
+
+      if (newScore === 0 && mult === 2) {
+        // WIN
+        const timeTaken = stopLevelTimer();
+        let msg = "CHECKOUT!";
+
+        let pathFeedback = `in ${timeTaken}s`;
+        const optimalPath = getCheckoutPath(state.checkoutTarget, 3);
+        if (optimalPath) {
+          const userPathStr = currentThrowPath.join(' ');
+          const optPathStr = optimalPath.join(' ');
+          if (userPathStr !== optPathStr && state.levelAttempts === 1) {
+            pathFeedback = `In ${timeTaken}s\nTipp:\n${optPathStr} wäre optimal gewesen!`;
+          }
+        }
+
+        showMessage(msg, pathFeedback, 'win', () => {
+
+          state.checkoutTarget = getNextCheckoutTask();
+          state.currentScore = state.checkoutTarget;
+          state.dartsLeft = 3;
+          state.levelAttempts = 1;
+
+          saveState();
+          updateUI();
+          startLevelTimer();
+        });
+
+      } else if (newScore < 0 || newScore === 1 || (newScore === 0 && mult !== 2)) {
+        // BUST
+        stopLevelTimer();
+        state.levelAttempts++;
+        showMessage("BUST", `No Score`, 'bust', () => {
+
+          state.currentScore = state.checkoutTarget;
+          state.dartsLeft = 3;
+
+          saveState();
+          updateUI();
+          startLevelTimer();
+        });
+      } else {
+        // Normal Throw
+        state.currentScore = newScore;
+        if (state.dartsLeft === 0) {
+          stopLevelTimer();
+          state.levelAttempts++;
+          showMessage("NO FINISH", `Score remains ${state.checkoutTarget}`, 'bust', () => {
+            state.currentScore = state.checkoutTarget;
+            state.dartsLeft = 3;
+
+            saveState();
+            updateUI();
+            startLevelTimer();
+          });
+        }
+      }
+
+      saveState();
+      updateUI();
+    }
+
+    function showMessage(title, sub, typeClass, callback) {
+      DOM.msgOverlay.className = 'msg-overlay show ' + (typeClass ? 'msg-' + typeClass : '');
+      DOM.msgTitle.innerText = title;
+      DOM.msgSub.innerText = sub;
+
+      // Remove old event listeners
+      const newBtn = DOM.msgContinueBtn.cloneNode(true);
+      DOM.msgContinueBtn.parentNode.replaceChild(newBtn, DOM.msgContinueBtn);
+      // Update DOM cache reference to the single cloned element
+      DOM.msgContinueBtn = newBtn;
+
+      newBtn.addEventListener('click', () => {
+        DOM.msgOverlay.classList.remove('show');
+        if (callback) callback();
+      });
+    }
+
+    function updateUI() {
+      DOM.score.innerText = state.currentScore;
+
+      let totalDarts = state.gameMode === '2-dart' ? 2 : 3;
+      for (let i = 1; i <= 3; i++) {
+        const d = document.getElementById('dart-' + i); // Too nested for single cache without Array map, but keep as is or inline
+        const dWrap = document.getElementById('dart-wrap-' + i);
+        const dText = document.getElementById('dart-text-' + i);
+
+        if (i > totalDarts) {
+          dWrap.style.display = 'none'; // hide entirely
+          continue;
+        }
+        dWrap.style.display = 'flex';
+
+        let usedDarts = totalDarts - state.dartsLeft;
+        if (i <= usedDarts) {
+          d.classList.remove('active');
+          dText.innerText = currentThrowPath[i - 1] || '';
+        } else {
+          d.classList.add('active');
+          dText.innerText = '';
+        }
+      }
+
+      let pathArr = getCheckoutPath(state.currentScore, state.dartsLeft);
+      if (pathArr) {
+        DOM.path.innerText = pathArr.join(' ');
+        DOM.btnReveal.style.display = 'block';
+      } else {
+        DOM.path.innerText = 'Kein Finish';
+        DOM.btnReveal.style.display = 'none';
+        DOM.path.classList.add('revealed'); // Show 'Kein Finish' clearly
+      }
+
+      if (pathArr) DOM.path.classList.remove('revealed');
+    }
+
+    // --- SVG Dartboard Generation ---
+    function initSVG() {
+      const svg = document.getElementById('svg-board');
+      let html = '';
+      const segs = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
+
+      function p2c(r, aDeg) {
+        const rad = (aDeg - 90) * Math.PI / 180;
+        return { x: r * Math.cos(rad), y: r * Math.sin(rad) };
+      }
+
+      function arcPath(inR, outR, start, end) {
+        const p1 = p2c(outR, end), p2 = p2c(outR, start);
+        const p3 = p2c(inR, start), p4 = p2c(inR, end);
+        const lArc = end - start <= 180 ? "0" : "1";
+        return `M ${p1.x} ${p1.y} A ${outR} ${outR} 0 ${lArc} 0 ${p2.x} ${p2.y} L ${p3.x} ${p3.y} A ${inR} ${inR} 0 ${lArc} 1 ${p4.x} ${p4.y} Z`;
+      }
+
+      html += `<circle cx="0" cy="0" r="170" fill="#0A0D12" data-score="0" data-mult="0" data-name="Miss" />`;
+
+      for (let i = 0; i < 20; i++) {
+        const num = segs[i];
+        const s = i * 18 - 9, e = i * 18 + 9;
+        const cS = i % 2 === 0 ? '#18181A' : '#E8E8E8';
+        const cR = i % 2 === 0 ? '#E3292E' : '#309F6A';
+        html += `<path d="${arcPath(15.9, 99, s, e)}" fill="${cS}" data-score="${num}" data-mult="1" data-name="${num}" />`;
+        html += `<path d="${arcPath(99, 107, s, e)}" fill="${cR}" data-score="${num}" data-mult="3" data-name="T${num}" />`;
+        html += `<path d="${arcPath(107, 162, s, e)}" fill="${cS}" data-score="${num}" data-mult="1" data-name="${num}" />`;
+        html += `<path d="${arcPath(162, 170, s, e)}" fill="${cR}" data-score="${num}" data-mult="2" data-name="D${num}" />`;
+      }
+
+      html += `<circle cx="0" cy="0" r="15.9" fill="#309F6A" data-score="25" data-mult="1" data-name="25" />`;
+      html += `<circle cx="0" cy="0" r="6.35" fill="#E3292E" data-score="25" data-mult="2" data-name="Bull" />`;
+
+      const addWire = (r) => html += `<circle cx="0" cy="0" r="${r}" class="wire" />`;
+      [170, 162, 107, 99, 15.9, 6.35].forEach(addWire);
+
+      for (let i = 0; i < 20; i++) {
+        const pO = p2c(170, i * 18 - 9), pI = p2c(15.9, i * 18 - 9);
+        html += `<line x1="${pI.x}" y1="${pI.y}" x2="${pO.x}" y2="${pO.y}" class="wire" />`;
+      }
+
+      for (let i = 0; i < 20; i++) {
+        const p = p2c(186, i * 18);
+        html += `<text x="${p.x}" y="${p.y + 6}" fill="#fff" font-size="18" font-weight="bold" text-anchor="middle" font-family="sans-serif">${segs[i]}</text>`;
+      }
+
+      svg.innerHTML = html;
+    }
+
+    function applyInputMode() {
+      if (!DOM.boardWrap || !DOM.numpadWrap) return;
+      if (state.inputMode === 'numpad') {
+        DOM.boardWrap.style.display = 'none';
+        DOM.numpadWrap.style.display = 'block';
+        if (DOM.inputModeIcon) DOM.inputModeIcon.innerText = '🎯';
+      } else {
+        DOM.boardWrap.style.display = 'block';
+        DOM.numpadWrap.style.display = 'none';
+        if (DOM.inputModeIcon) DOM.inputModeIcon.innerText = '🔢';
+      }
+    }
+
+    function initNumpad() {
+      const grid = document.getElementById('numpad-grid');
+      if (!grid) return;
+
+      grid.innerHTML = '';
+
+      // Top 20 down to 1 (left side 20-11, right side 10-1)
+      for (let i = 20; i >= 11; i--) {
+        const rightNum = i - 10;
+
+        // Left Column (e.g. 20)
+        grid.innerHTML += `<div class="numpad-btn btn-red" data-score="${i}" data-mult="3" data-name="T${i}">T${i}</div>`;
+        grid.innerHTML += `<div class="numpad-btn btn-green" data-score="${i}" data-mult="2" data-name="D${i}">D${i}</div>`;
+        grid.innerHTML += `<div class="numpad-btn" data-score="${i}" data-mult="1" data-name="${i}">${i}</div>`;
+
+        // Right Column (e.g. 10)
+        grid.innerHTML += `<div class="numpad-btn btn-red" data-score="${rightNum}" data-mult="3" data-name="T${rightNum}">T${rightNum}</div>`;
+        grid.innerHTML += `<div class="numpad-btn btn-green" data-score="${rightNum}" data-mult="2" data-name="D${rightNum}">D${rightNum}</div>`;
+        grid.innerHTML += `<div class="numpad-btn" data-score="${rightNum}" data-mult="1" data-name="${rightNum}">${rightNum}</div>`;
+      }
+
+      // Bottom Row
+      grid.innerHTML += `<div class="numpad-btn btn-25" data-score="25" data-mult="1" data-name="25">25</div>`;
+      grid.innerHTML += `<div class="numpad-btn btn-bull" data-score="25" data-mult="2" data-name="Bull">BULL</div>`;
+      grid.innerHTML += `<div class="numpad-btn btn-miss" data-score="0" data-mult="0" data-name="Miss">MISS</div>`;
+
+      // Bind Events
+      const btns = grid.querySelectorAll('.numpad-btn');
+      btns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          if (zoomTimer) { clearTimeout(zoomTimer); zoomTimer = null; }
+          const score = parseInt(btn.getAttribute('data-score'));
+          const mult = parseInt(btn.getAttribute('data-mult'));
+          const name = btn.getAttribute('data-name');
+
+          if (!isNaN(score)) {
+            if (navigator.vibrate) navigator.vibrate(20);
+            handleThrow(score, mult, name);
+          }
+        });
+      });
+    }
+    // --- Zoom & Touch Handlers ---
+    let zoomTimer = null;
+    let isZoomed = false;
+    let startX = 0, startY = 0;
+    let touchOffset = 0;
+
+    function initApp() {
+      // Initialize DOM Cache
+      DOM = {
+        menuView: document.getElementById('menu-view'),
+        gameHeader: document.getElementById('game-header'),
+        gameMain: document.getElementById('game-main'),
+        score: document.getElementById('ui-score'),
+        path: document.getElementById('ui-path'),
+        btnReveal: document.getElementById('btn-reveal'),
+        btnUndo: document.getElementById('btn-undo'),
+        msgOverlay: document.getElementById('msg-overlay'),
+        msgTitle: document.getElementById('msg-title'),
+        msgSub: document.getElementById('msg-sub'),
+        msgContinueBtn: document.getElementById('btn-msg-continue'),
+        numpadWrap: document.getElementById('numpad-wrap'),
+        numpadGrid: document.getElementById('numpad-grid'),
+        btnToggleInput: document.getElementById('btn-toggle-input'),
+        inputModeIcon: document.getElementById('input-mode-icon'),
+        boardWrap: document.getElementById('board-wrap'),
+        svgBoard: document.getElementById('svg-board'),
+        zoomReticle: document.getElementById('zoom-reticle'),
+        btnModeMinus: document.getElementById('btn-mode-minus'),
+        minusView: document.getElementById('minus-view'),
+        minusTaskStart: document.getElementById('minus-task-start'),
+        minusTaskSub: document.getElementById('minus-task-sub'),
+        minusTaskInput: document.getElementById('minus-task-input'),
+        btnModePathgame: document.getElementById('btn-mode-pathgame'),
+        pathView: document.getElementById('path-view'),
+        pathTarget: document.getElementById('path-target')
+      };
+
+      initSVG();
+      initNumpad();
+
+      // Setup Input Mode Toggle
+      DOM.btnToggleInput.addEventListener('click', () => {
+        state.inputMode = state.inputMode === 'dartboard' ? 'numpad' : 'dartboard';
+        saveState();
+        applyInputMode();
+      });
+
+      DOM.boardWrap.addEventListener('pointerdown', e => {
+        if (e.button !== undefined && e.button !== 0) return; // Only left click / touch
+        e.preventDefault();
+        startX = e.clientX;
+        startY = e.clientY;
+        touchOffset = e.pointerType === 'touch' ? 70 : 0; // 70px offset for touch devices
+
+        zoomTimer = setTimeout(() => {
+          isZoomed = true;
+
+          const tapX = startX;
+          const tapY = startY - touchOffset;
+
+          const rect = DOM.boardWrap.getBoundingClientRect();
+          let pctX = ((tapX - rect.left) / rect.width) * 100;
+          let pctY = ((tapY - rect.top) / rect.height) * 100;
+          // Clamp to avoid zooming completely out of bounds perfectly safely
+          pctX = Math.max(10, Math.min(90, pctX));
+          pctY = Math.max(10, Math.min(90, pctY));
+
+          DOM.svgBoard.style.transformOrigin = `${pctX}% ${pctY}%`;
+          DOM.svgBoard.classList.add('zoomed');
+
+          if (DOM.zoomReticle) {
+            DOM.zoomReticle.style.display = 'block';
+            DOM.zoomReticle.style.left = tapX + 'px';
+            DOM.zoomReticle.style.top = tapY + 'px';
+          }
+
+          if (navigator.vibrate) navigator.vibrate(50); // Haptic feedback on zoom
+        }, 400); // 400ms long press trigger
+      });
+
+      window.addEventListener('pointermove', e => {
+        if (e.target.closest('#board-wrap')) e.preventDefault();
+        if (!isZoomed && zoomTimer) {
+          const dist = Math.hypot(e.clientX - startX, e.clientY - startY);
+          if (dist > 10) { clearTimeout(zoomTimer); zoomTimer = null; }
+        } else if (isZoomed) {
+          // Offset touch for visibility above finger
+          const tapX = e.clientX;
+          const tapY = e.clientY - touchOffset;
+
+          const rect = DOM.boardWrap.getBoundingClientRect();
+          let pctX = ((tapX - rect.left) / rect.width) * 100;
+          let pctY = ((tapY - rect.top) / rect.height) * 100;
+          pctX = Math.max(10, Math.min(90, pctX));
+          pctY = Math.max(10, Math.min(90, pctY));
+          DOM.svgBoard.style.transformOrigin = `${pctX}% ${pctY}%`;
+
+          if (DOM.zoomReticle) {
+            DOM.zoomReticle.style.left = tapX + 'px';
+            DOM.zoomReticle.style.top = tapY + 'px';
+          }
+        }
+      }, { passive: false });
+
+      DOM.boardWrap.addEventListener('pointerup', e => {
+        e.preventDefault();
+        handleRelease(e.clientX, e.clientY);
+      });
+      DOM.boardWrap.addEventListener('pointercancel', e => {
+        if (zoomTimer) { clearTimeout(zoomTimer); zoomTimer = null; }
+        if (isZoomed) {
+          isZoomed = false;
+          DOM.svgBoard.classList.remove('zoomed');
+          if (DOM.zoomReticle) DOM.zoomReticle.style.display = 'none';
+        }
+      });
+
+      function handleRelease(cx, cy) {
+        if (zoomTimer) { clearTimeout(zoomTimer); zoomTimer = null; }
+
+        if (DOM.zoomReticle) DOM.zoomReticle.style.display = 'none';
+
+        // Use the offset values for targeting when zoomed
+        const targetY = isZoomed ? cy - touchOffset : cy;
+        const el = document.elementFromPoint(cx, targetY);
+
+        if (isZoomed) {
+          isZoomed = false;
+          DOM.svgBoard.classList.remove('zoomed');
+          setTimeout(() => { if (!isZoomed) DOM.svgBoard.style.transformOrigin = 'center center'; }, 250);
+        }
+
+        if (el) {
+          const pathEl = el.closest('path') || el.closest('circle');
+          if (pathEl) {
+            const score = parseInt(pathEl.getAttribute('data-score'));
+            const mult = parseInt(pathEl.getAttribute('data-mult'));
+            const name = pathEl.getAttribute('data-name');
+            if (!isNaN(score)) {
+              if (navigator.vibrate) navigator.vibrate(20);
+              setTimeout(() => handleThrow(score, mult, name), 50); // slight delay after visual tap
+            }
+          }
+        }
+      }
+
+      // Menu Button Listeners
+      const btnMode2 = document.getElementById('btn-mode-2');
+      if (btnMode2) btnMode2.addEventListener('click', () => setGameMode('2-dart'));
+      const btnMode3 = document.getElementById('btn-mode-3');
+      if (btnMode3) btnMode3.addEventListener('click', () => setGameMode('3-dart'));
+
+      if (DOM.btnModeMinus) DOM.btnModeMinus.addEventListener('click', () => startMinusGame());
+      if (DOM.btnModePathgame) DOM.btnModePathgame.addEventListener('click', () => startPathGame());
+
+      const btnBackMenu = document.getElementById('btn-back-menu');
+      if (btnBackMenu) btnBackMenu.addEventListener('click', () => showMenu());
+
+      // Der richtige Weg Listeners
+      for (let i = 0; i < 3; i++) {
+        const btn = document.getElementById('btn-path-' + i);
+        if (btn) {
+          btn.addEventListener('click', () => {
+            if (navigator.vibrate) navigator.vibrate(20);
+            const isCorrect = (i === pathGameState.expectedIdx);
+
+            if (isCorrect) {
+              btn.style.background = 'var(--accent-green)';
+              btn.style.borderColor = '#FFF';
+              if (navigator.vibrate) navigator.vibrate(50);
+
+              // Disable choices
+              for (let j = 0; j < 3; j++) document.getElementById('btn-path-' + j).disabled = true;
+
+              setTimeout(() => {
+                nextPathTask();
+              }, 600);
+            } else {
+              btn.style.background = 'var(--accent)';
+              btn.style.borderColor = '#FFF';
+              if (navigator.vibrate) navigator.vibrate([30, 50, 30]);
+
+              const correctBtn = document.getElementById('btn-path-' + pathGameState.expectedIdx);
+              correctBtn.style.background = 'var(--accent-green)';
+              correctBtn.style.borderColor = '#FFF';
+
+              // Disable choices
+              for (let j = 0; j < 3; j++) document.getElementById('btn-path-' + j).disabled = true;
+
+              setTimeout(() => {
+                nextPathTask();
+              }, 1200);
+            }
+          });
+        }
+      }
+
+      // Minusrechnen Numpad Listeners
+      DOM.minusView.querySelectorAll('.simple-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (navigator.vibrate) navigator.vibrate(10);
+          const action = btn.getAttribute('data-action');
+          const val = btn.getAttribute('data-val');
+
+          if (val !== null) {
+            if (minusGameState.currentInput.length < 3) {
+              minusGameState.currentInput += val;
+              DOM.minusTaskInput.innerText = minusGameState.currentInput;
+              DOM.minusTaskInput.style.color = '#FFF';
+            }
+          } else if (action === 'del') {
+            minusGameState.currentInput = minusGameState.currentInput.slice(0, -1);
+            DOM.minusTaskInput.innerText = minusGameState.currentInput || "?";
+            if (!minusGameState.currentInput) DOM.minusTaskInput.style.color = 'var(--accent-green)';
+          } else if (action === 'enter') {
+            if (minusGameState.currentInput === "") return;
+            const numInput = parseInt(minusGameState.currentInput);
+            if (numInput === minusGameState.expected) {
+              DOM.minusTaskInput.style.color = 'var(--accent-green)';
+              DOM.minusTaskInput.style.transform = 'scale(1.2)';
+              if (navigator.vibrate) navigator.vibrate(50);
+              setTimeout(() => {
+                DOM.minusTaskInput.style.transform = 'scale(1)';
+                nextMinusTask();
+              }, 400);
+            } else {
+              DOM.minusTaskInput.style.color = 'var(--accent)';
+              DOM.minusTaskInput.innerText = "Falsch";
+              if (navigator.vibrate) navigator.vibrate([30, 50, 30]);
+              setTimeout(() => {
+                minusGameState.currentInput = "";
+                DOM.minusTaskInput.innerText = "?";
+                DOM.minusTaskInput.style.color = 'var(--accent-green)';
+              }, 600);
+            }
+          }
+        });
+      });
+
+      DOM.btnReveal.addEventListener('click', () => {
+        DOM.path.classList.add('revealed');
+      });
+
+      DOM.btnUndo.addEventListener('click', () => {
+        if (history.length > 0) {
+          state = history.pop();
+          if (currentThrowPath.length > 0) currentThrowPath.pop();
+          saveState();
+          updateUI();
+          if (history.length === 0) DOM.btnUndo.disabled = true;
+        }
+      });
+
+      // Initial Load
+      loadState();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initApp);
+    } else {
+      initApp();
+    }
+
+  </script>
+</body>
+
+</html>
