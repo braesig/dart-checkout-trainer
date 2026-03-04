@@ -176,7 +176,6 @@
       margin: 0 auto;
       overflow: hidden;
       border-radius: 50%;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(0, 0, 0, 0.8);
       background: var(--board-bg);
       touch-action: none;
     }
@@ -833,11 +832,6 @@
     <button id="btn-back-menu"
       style="background: rgba(255,255,255,0.1); border: none; color: #FFF; font-size: 14px; cursor: pointer; padding: 6px 16px; border-radius: 8px; font-weight: bold; transition: background 0.2s; text-transform: uppercase;">Zurück
       ins Hauptmenü</button>
-
-    <button id="btn-toggle-input"
-      style="background: rgba(255,255,255,0.1); border: none; color: #FFF; font-size: 14px; cursor: pointer; padding: 6px 16px; border-radius: 8px; font-weight: bold; transition: background 0.2s; display: flex; align-items: center; gap: 6px;">
-      Eingabe: <span id="input-mode-icon">🎯</span>
-    </button>
   </header>
 
   <div class="main-display" id="game-main" style="display:none;">
@@ -864,8 +858,13 @@
     </div>
 
     <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin: 10px 0 5px 0;">
+      <button id="btn-toggle-input"
+        style="background: rgba(255,255,255,0.1); border: none; color: #FFF; font-size: 15px; cursor: pointer; padding: 6px 16px; border-radius: 8px; font-weight: bold; transition: background 0.2s; display: flex; align-items: center; gap: 6px;">
+        <span id="input-mode-icon">🎯</span>
+      </button>
+
       <button id="btn-undo" disabled
-        style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #BBB; border-radius: 8px; cursor: pointer; padding: 5px 12px; font-size: 16px; transition: background 0.2s;">↩️</button>
+        style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #BBB; border-radius: 8px; cursor: pointer; padding: 5px 16px; font-size: 16px; transition: background 0.2s;">↩️</button>
     </div>
 
     <div class="game-area">
@@ -1078,7 +1077,8 @@
 
       DOM.menuView.style.display = 'none';
       DOM.gameHeader.style.display = 'flex';
-      DOM.gameMain.style.display = 'block';
+      DOM.btnToggleInput.style.display = 'flex';
+      DOM.gameMain.style.display = 'flex';
 
       saveState();
       updateUI();
@@ -1176,12 +1176,23 @@
     function generateDecoyPaths(score, correctPathStr) {
       let decoys = new Set();
       let attempts = 0;
-      while (decoys.size < 2 && attempts < 50) {
+      const fallbacks = ['T20 T20 D5', 'T19 T19 D12', 'T20 T10 D20', 'T20 D20', 'T19 D16'];
+
+      while (decoys.size < 2 && attempts < 20) {
         attempts++;
         let p = getDecoyPath(score);
         if (p !== correctPathStr) decoys.add(p);
       }
-      return Array.from(decoys);
+
+      let decoyArr = Array.from(decoys);
+      let fallbackIdx = 0;
+      while (decoyArr.length < 2 && fallbackIdx < fallbacks.length) {
+        let fb = fallbacks[fallbackIdx++];
+        if (fb !== correctPathStr && !decoyArr.includes(fb)) {
+          decoyArr.push(fb);
+        }
+      }
+      return decoyArr;
     }
 
     function nextPathTask() {
@@ -1218,24 +1229,7 @@
       }
     }
 
-    function setGameMode(mode) {
-      state.gameMode = mode;
-      state.remainingLevels = [];
-      state.checkoutTarget = getNextCheckoutTask();
-      state.currentScore = state.checkoutTarget;
 
-      let initialDarts = state.gameMode === '2-dart' ? 2 : 3;
-      state.dartsLeft = initialDarts;
-      state.levelAttempts = 1;
-
-      saveState();
-      DOM.menuView.style.display = 'none';
-      DOM.gameHeader.style.display = 'flex';
-      DOM.btnToggleInput.style.display = 'flex';
-      DOM.gameMain.style.display = 'flex';
-      updateUI();
-      startLevelTimer();
-    }
 
     function loadState() {
       let saved = null;
@@ -1247,15 +1241,19 @@
 
       if (saved) {
         try {
-          state = JSON.parse(saved);
+          let parsed = JSON.parse(saved);
+          if (parsed && typeof parsed === 'object' && Array.isArray(parsed.remainingLevels)) {
+            state = Object.assign({}, state, parsed);
+          }
         } catch (e) {
           console.error("Daten korrupt, setze zurück.", e);
+          localStorage.removeItem('dartTrainerV1');
         }
       }
       if (!state.levelAttempts) state.levelAttempts = 1;
       if (!state.remainingLevels) state.remainingLevels = [];
       if (!state.gameMode) state.gameMode = '3-dart';
-      if (!state.inputMode) state.inputMode = 'dartboard';
+      if (!state.inputMode) state.inputMode = 'numpad'; // Changed default to numpad
 
       applyInputMode(); // Ensure UI reflects the saved or default state
 
@@ -1291,6 +1289,9 @@
 
       if (newScore === 0 && mult === 2) {
         // WIN
+        state.currentScore = newScore;
+        updateUI(); // Show remaining score 0 before overlay immediately
+
         const timeTaken = stopLevelTimer();
         let msg = "CHECKOUT!";
 
@@ -1305,11 +1306,11 @@
         }
 
         showMessage(msg, pathFeedback, 'win', () => {
-
           state.checkoutTarget = getNextCheckoutTask();
           state.currentScore = state.checkoutTarget;
-          state.dartsLeft = 3;
+          state.dartsLeft = state.gameMode === '2-dart' ? 2 : 3;
           state.levelAttempts = 1;
+          currentThrowPath = [];
 
           saveState();
           updateUI();
@@ -1321,9 +1322,9 @@
         stopLevelTimer();
         state.levelAttempts++;
         showMessage("BUST", `No Score`, 'bust', () => {
-
           state.currentScore = state.checkoutTarget;
-          state.dartsLeft = 3;
+          state.dartsLeft = state.gameMode === '2-dart' ? 2 : 3;
+          currentThrowPath = [];
 
           saveState();
           updateUI();
@@ -1335,19 +1336,22 @@
         if (state.dartsLeft === 0) {
           stopLevelTimer();
           state.levelAttempts++;
-          showMessage("NO FINISH", `Score remains ${state.checkoutTarget}`, 'bust', () => {
+          updateUI(); // Show final score before BUST overlay
+
+          showMessage("NO FINISH", `Score bleibt ${state.checkoutTarget}`, 'bust', () => {
             state.currentScore = state.checkoutTarget;
-            state.dartsLeft = 3;
+            state.dartsLeft = state.gameMode === '2-dart' ? 2 : 3;
+            currentThrowPath = [];
 
             saveState();
             updateUI();
             startLevelTimer();
           });
+        } else {
+          saveState();
+          updateUI();
         }
       }
-
-      saveState();
-      updateUI();
     }
 
     function showMessage(title, sub, typeClass, callback) {
