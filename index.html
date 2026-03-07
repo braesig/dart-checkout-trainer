@@ -860,8 +860,8 @@
       <button class="menu-mode-btn" id="btn-mode-minus-2">2x Minusrechnen</button>
 
       <!-- Neue Anordnung -->
-      <button class="menu-mode-btn" id="btn-mode-double">Das richtige Doppel</button>
-      <button class="menu-mode-btn" id="btn-mode-pathgame">Der richtige Weg</button>
+      <button class="menu-mode-btn" id="btn-mode-double">Richtige Doppel</button>
+      <button class="menu-mode-btn" id="btn-mode-pathgame">Richtige Weg</button>
       <button class="menu-mode-btn" id="btn-mode-game">Game Mode</button>
     </div>
   </div>
@@ -1072,7 +1072,7 @@
   <!-- Der richtige Weg View -->
   <div id="path-view"
     style="display:none; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; padding: 20px;">
-    <h1 class="comic-title" style="font-size: 36px; margin-bottom: 20px;">Der richtige Weg</h1>
+    <h1 class="comic-title" style="font-size: 36px; margin-bottom: 20px;">Richtige Weg</h1>
 
     <div style="font-size: 16px; color: #888; text-transform: uppercase; font-weight: 600; margin-bottom: 5px;">
       Checkout
@@ -1229,6 +1229,10 @@
       DOM.gameHeader.style.display = 'flex';
       DOM.btnToggleInput.style.display = 'flex';
       DOM.gameMain.style.display = 'flex';
+      if (DOM.minusView) DOM.minusView.style.display = 'none';
+      if (DOM.pathView) DOM.pathView.style.display = 'none';
+      if (DOM.gameModeView) DOM.gameModeView.style.display = 'none';
+      if (DOM.doubleGameView) DOM.doubleGameView.style.display = 'none';
 
       saveState();
       updateUI();
