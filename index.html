@@ -1358,16 +1358,25 @@
     }
 
     function generateRealisticDart() {
-      // Simulate throwing around T20, T19, T18, Bull etc.
+      const neighbors = {
+        20: [1, 5], 1: [20, 18], 18: [1, 4], 4: [18, 13], 13: [4, 6],
+        6: [13, 10], 10: [6, 15], 15: [10, 2], 2: [15, 17], 17: [2, 3],
+        3: [17, 19], 19: [3, 7], 7: [19, 16], 16: [7, 8], 8: [16, 11],
+        11: [8, 14], 14: [11, 9], 9: [14, 12], 12: [9, 5], 5: [12, 20]
+      };
+
       const zones = [
-        { base: 20, weight: 50 },
-        { base: 19, weight: 30 },
+        { base: 20, weight: 40 },
+        { base: 19, weight: 20 },
         { base: 18, weight: 10 },
         { base: 17, weight: 5 },
-        { base: 25, weight: 5 } // Bull
+        { base: 16, weight: 5 },
+        { base: 1, weight: 5 },
+        { base: 5, weight: 5 },
+        { base: 4, weight: 5 },
+        { base: 25, weight: 5 }
       ];
 
-      // Select base zone
       let rand = Math.random() * 100;
       let selectedBase = 20;
       let acc = 0;
@@ -1379,41 +1388,45 @@
         }
       }
 
-      if (selectedBase === 25) {
-        return Math.random() > 0.5 ? { score: 50, name: 'Bull' } : { score: 25, name: '25' };
-      }
-
-      // Determine hit type around the base
-      // 30% Triple, 10% Double, 10% treble miss (e.g., T5 or T1), 50% single
-      let hitType = Math.random();
+      let isDouble = false;
       let name = "";
       let score = 0;
 
-      if (hitType < 0.30) {
-        name = "T" + selectedBase;
-        score = selectedBase * 3;
-      } else if (hitType < 0.40) {
-        name = "D" + selectedBase;
-        score = selectedBase * 2;
-      } else if (hitType < 0.50) {
-        // Missed into neighboring triple/single
-        const neighbors = {
-          20: [1, 5], 19: [3, 7], 18: [1, 4], 17: [2, 3]
-        };
-        let neighbor = neighbors[selectedBase][Math.floor(Math.random() * 2)];
+      if (selectedBase === 25) {
         if (Math.random() > 0.5) {
-          name = "T" + neighbor;
-          score = neighbor * 3;
+          score = 50; name = 'Bull'; isDouble = true;
         } else {
-          name = "" + neighbor;
-          score = neighbor;
+          score = 25; name = '25'; isDouble = false;
         }
       } else {
-        name = "" + selectedBase;
-        score = selectedBase;
+        let hitType = Math.random();
+        if (hitType < 0.30) {
+          name = "T" + selectedBase;
+          score = selectedBase * 3;
+        } else if (hitType < 0.40) {
+          name = "D" + selectedBase;
+          score = selectedBase * 2;
+          isDouble = true;
+        } else if (hitType < 0.60) {
+          let neighbor = neighbors[selectedBase][Math.floor(Math.random() * 2)];
+          if (Math.random() > 0.8) {
+            name = "T" + neighbor;
+            score = neighbor * 3;
+          } else if (Math.random() > 0.8) {
+            name = "D" + neighbor;
+            score = neighbor * 2;
+            isDouble = true;
+          } else {
+            name = "" + neighbor;
+            score = neighbor;
+          }
+        } else {
+          name = "" + selectedBase;
+          score = selectedBase;
+        }
       }
 
-      return { score, name };
+      return { score, name, isDouble };
     }
 
     function playMentalGame(speed) {
@@ -1434,17 +1447,49 @@
       // Select a random start score from the optimal checkouts or any finishable number
       const validTargets = Object.keys(CONSTANTS.OPTIMAL_CHECKOUTS).map(Number).filter(x => x >= 40 && x <= 170 && !CONSTANTS.BOGEY.includes(x));
       gmGameState.startScore = validTargets[Math.floor(Math.random() * validTargets.length)];
-
       document.getElementById('game-mode-start-score').innerText = gmGameState.startScore;
 
-      gmGameState.darts = [
-        generateRealisticDart(),
-        generateRealisticDart(),
-        generateRealisticDart()
-      ];
+      let validDartsGenerated = false;
+      let attempts = 0;
 
-      let sum = gmGameState.darts.reduce((a, b) => a + b.score, 0);
-      gmGameState.expected = gmGameState.startScore - sum;
+      while (!validDartsGenerated && attempts < 150) {
+        attempts++;
+        let tempScore = gmGameState.startScore;
+        let tempDarts = [];
+        let isValidSequence = true;
+
+        for (let i = 0; i < 3; i++) {
+          if (tempScore === 0) break; // Finished early
+
+          let dart = generateRealisticDart();
+          let nextScore = tempScore - dart.score;
+
+          if (nextScore < 0 || nextScore === 1 || (nextScore === 0 && !dart.isDouble)) {
+            isValidSequence = false;
+            break;
+          }
+
+          tempDarts.push(dart);
+          tempScore = nextScore;
+        }
+
+        if (isValidSequence && tempDarts.length > 0) {
+          gmGameState.darts = tempDarts;
+          gmGameState.expected = tempScore; // this is what's left
+          validDartsGenerated = true;
+        }
+      }
+
+      // Fallback
+      if (!validDartsGenerated) {
+        let d = { score: 1, name: '1', isDouble: false };
+        if (gmGameState.startScore <= 40 && gmGameState.startScore % 2 === 0) {
+          d = { score: gmGameState.startScore, name: 'D' + (gmGameState.startScore / 2), isDouble: true };
+        }
+        gmGameState.darts = [d];
+        gmGameState.expected = gmGameState.startScore - d.score;
+      }
+
       gmGameState.speed = speed;
       gmGameState.currentDart = 0;
 
@@ -1452,7 +1497,7 @@
     }
 
     function showNextMentalDart() {
-      if (gmGameState.currentDart < 3) {
+      if (gmGameState.currentDart < gmGameState.darts.length) {
         timerElapsedTime = 0;
         gmGameState.dartInterval = setTimeout(() => {
           const dartData = gmGameState.darts[gmGameState.currentDart];
