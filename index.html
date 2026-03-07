@@ -962,9 +962,9 @@
     <!-- Speed Selection -->
     <div id="game-mode-speed-select" style="display: flex; flex-direction: column; gap: 15px; width: 100%;">
       <p style="text-align: center; color: #BBB; margin-bottom: 10px; font-size: 18px;">Wähle deine Geschwindigkeit:</p>
-      <button class="path-option-btn" data-speed="3000">Beginner (3 Sek.)</button>
-      <button class="path-option-btn" data-speed="2000">Amateur (2 Sek.)</button>
-      <button class="path-option-btn" data-speed="1000">Profi (1 Sek.)</button>
+      <button class="path-option-btn" data-speed="5000">Beginner (5 Sek.)</button>
+      <button class="path-option-btn" data-speed="4000">Amateur (4 Sek.)</button>
+      <button class="path-option-btn" data-speed="3000">Profi (3 Sek.)</button>
     </div>
 
     <!-- Active Game -->
@@ -977,18 +977,25 @@
 
       <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; min-height: 50px;">
         <div class="dart-text" id="gm-dart-1"
-          style="font-size: 30px; opacity: 0; transition: opacity 0.3s; color: var(--accent);"></div>
+          style="font-family: var(--primary-font); font-size: 35px; opacity: 0; transition: opacity 0.3s; color: var(--accent);">
+        </div>
         <div class="dart-text" id="gm-dart-2"
-          style="font-size: 30px; opacity: 0; transition: opacity 0.3s; color: var(--accent);"></div>
+          style="font-family: var(--primary-font); font-size: 35px; opacity: 0; transition: opacity 0.3s; color: var(--accent);">
+        </div>
         <div class="dart-text" id="gm-dart-3"
-          style="font-size: 30px; opacity: 0; transition: opacity 0.3s; color: var(--accent);"></div>
+          style="font-family: var(--primary-font); font-size: 35px; opacity: 0; transition: opacity 0.3s; color: var(--accent);">
+        </div>
       </div>
 
       <div id="game-mode-input-area" style="display: none; flex-direction: column; align-items: center; width: 100%;">
         <div
-          style="font-size: 40px; font-weight: 900; color: #FFF; margin-bottom: 20px; font-family: 'Bangers', cursive; letter-spacing: 2px;">
-          Ergebnis = <span id="game-mode-input" style="color: var(--accent-green);">?</span>
+          style="font-size: 40px; font-weight: 900; color: #FFF; margin-bottom: 15px; font-family: 'Bangers', cursive; letter-spacing: 2px;">
+          Ergebnis = <span id="game-mode-input"
+            style="font-family: var(--primary-font); color: var(--accent-green);">?</span>
         </div>
+
+        <button id="btn-gm-replay"
+          style="margin-bottom: 25px; padding: 12px 25px; font-family: 'Bangers', cursive; font-size: 20px; background: #2A2D35; color: white; border: 2px solid rgba(255, 255, 255, 0.1); border-radius: 8px; cursor: pointer; text-transform: uppercase;">Wiederholen</button>
 
         <div class="simple-numpad" style="margin-bottom: 20px;">
           <div class="simple-btn gm-btn" data-val="1">1</div>
@@ -1366,8 +1373,9 @@
       };
 
       const zones = [
-        { base: 20, weight: 40 },
-        { base: 19, weight: 20 },
+        { base: 'random', weight: 15 },
+        { base: 20, weight: 30 },
+        { base: 19, weight: 15 },
         { base: 18, weight: 10 },
         { base: 17, weight: 5 },
         { base: 16, weight: 5 },
@@ -1386,6 +1394,10 @@
           selectedBase = z.base;
           break;
         }
+      }
+
+      if (selectedBase === 'random') {
+        selectedBase = Math.floor(Math.random() * 20) + 1;
       }
 
       let isDouble = false;
@@ -2098,6 +2110,27 @@
           }
         });
       });
+
+      const btnGmReplay = document.getElementById('btn-gm-replay');
+      if (btnGmReplay) {
+        btnGmReplay.addEventListener('click', () => {
+          if (navigator.vibrate) navigator.vibrate(20);
+
+          for (let i = 1; i <= 3; i++) {
+            const el = document.getElementById('gm-dart-' + i);
+            el.style.opacity = '0';
+          }
+          gmGameState.currentInput = "";
+          const inputEl = document.getElementById('game-mode-input');
+          inputEl.innerText = "?";
+          inputEl.style.color = 'var(--accent-green)';
+
+          clearTimeout(gmGameState.dartInterval);
+          gmGameState.currentDart = 0;
+          document.getElementById('game-mode-input-area').style.display = 'none';
+          showNextMentalDart();
+        });
+      }
 
       DOM.btnReveal.addEventListener('click', () => {
         DOM.path.classList.add('revealed');
