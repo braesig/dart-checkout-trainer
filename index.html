@@ -784,10 +784,13 @@
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 8px;
       font-size: 26px;
-      font-family: 'Courier New', Courier, monospace;
+      font-family: 'Bangers', cursive;
       font-weight: 700;
       padding: 15px 0;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       text-align: center;
       transition: all 0.1s;
       user-select: none;
@@ -796,15 +799,29 @@
 
     .simple-btn:active {
       transform: scale(0.95);
-      background: #4A4D55;
+      background: #444;
     }
 
     .simple-btn.btn-del {
-      background: #E3292E;
+      font-family: 'Bangers', cursive;
+      background: var(--accent);
+      font-size: 24px;
+      letter-spacing: 1px;
+    }
+
+    .simple-btn.btn-del:active {
+      background: #c21e23;
     }
 
     .simple-btn.btn-enter {
-      background: #309F6A;
+      font-family: 'Bangers', cursive;
+      background: var(--accent-green);
+      font-size: 24px;
+      letter-spacing: 1px;
+    }
+
+    .simple-btn.btn-enter:active {
+      background: #258053;
     }
 
     /* Path Option Buttons */
@@ -990,15 +1007,14 @@
 
       <div id="game-mode-input-area" style="display: none; flex-direction: column; align-items: center; width: 100%;">
         <div
-          style="font-size: 40px; font-weight: 900; color: #FFF; margin-bottom: 15px; font-family: 'Bangers', cursive; letter-spacing: 2px;">
-          Ergebnis = <span id="game-mode-input"
-            style="font-family: 'Carter One', cursive; color: var(--accent-green);">?</span>
+          style="font-size: 40px; font-weight: 900; color: #FFF; margin-bottom: 10px; font-family: 'Bangers', cursive; letter-spacing: 2px;">
+          Ergebnis = <span id="game-mode-input" style="color: var(--accent-green);">?</span>
         </div>
 
         <button id="btn-gm-replay"
-          style="margin-bottom: 25px; padding: 12px 25px; font-family: 'Bangers', cursive; font-size: 20px; background: #2A2D35; color: white; border: 2px solid rgba(255, 255, 255, 0.1); border-radius: 8px; cursor: pointer; text-transform: uppercase;">Wiederholen</button>
+          style="margin-bottom: 15px; padding: 10px 20px; font-family: 'Bangers', cursive; font-size: 18px; background: #2A2D35; color: white; border: 2px solid rgba(255, 255, 255, 0.1); border-radius: 8px; cursor: pointer; text-transform: uppercase;">Wiederholen</button>
 
-        <div class="simple-numpad" style="margin-bottom: 20px;">
+        <div class="simple-numpad" style="margin-bottom: 15px; max-width: 320px;">
           <div class="simple-btn gm-btn" data-val="1">1</div>
           <div class="simple-btn gm-btn" data-val="2">2</div>
           <div class="simple-btn gm-btn" data-val="3">3</div>
