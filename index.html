@@ -1234,6 +1234,7 @@
       if (DOM.gameModeView) DOM.gameModeView.style.display = 'none';
       if (DOM.doubleGameView) DOM.doubleGameView.style.display = 'none';
 
+      applyInputMode(); // Ensure Numpad/Board shows based on previous state
       saveState();
       updateUI();
       startLevelTimer();
