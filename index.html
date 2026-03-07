@@ -546,28 +546,42 @@
       align-items: center;
       justify-content: center;
       height: 100vh;
-      gap: 25px;
+      gap: 15px;
+      /* Reduced gap to fit buttons */
       padding: 20px;
       background: linear-gradient(rgba(10, 13, 18, 0.6), rgba(10, 13, 18, 0.9)), url('bg.png') center/cover no-repeat;
       z-index: 200;
       width: 100%;
+      overflow-y: auto;
+      /* Allow scrolling if it still overflows on very small screens */
+    }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      width: 100%;
+      max-width: 600px;
     }
 
     .menu-mode-btn {
       font-family: 'Bangers', cursive;
-      padding: 15px 25px;
+      padding: 15px 10px;
       background: #FFD700;
       color: #000;
       border: 4px solid #000;
       border-radius: 8px;
-      font-size: 28px;
+      font-size: 20px;
       letter-spacing: 1px;
       cursor: pointer;
       box-shadow: 6px 6px 0px #000;
       width: 100%;
-      max-width: 320px;
       transition: transform 0.1s, box-shadow 0.1s;
       text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
     }
 
     .menu-mode-btn:active {
@@ -768,7 +782,8 @@
       color: #FFF;
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 8px;
-      font-size: 24px;
+      font-size: 26px;
+      font-family: 'Courier New', Courier, monospace;
       font-weight: 700;
       padding: 15px 0;
       cursor: pointer;
@@ -820,10 +835,14 @@
   <!-- Menu View -->
   <div id="menu-view">
     <h1 class="comic-title">DART CHECKOUT<br>TRAINER</h1>
-    <button class="menu-mode-btn" id="btn-mode-2">2-Dart Finish</button>
-    <button class="menu-mode-btn" id="btn-mode-3">3-Dart Finish</button>
-    <button class="menu-mode-btn" id="btn-mode-minus">Minusrechnen</button>
-    <button class="menu-mode-btn" id="btn-mode-pathgame">Der richtige Weg</button>
+    <div class="menu-grid">
+      <button class="menu-mode-btn" id="btn-mode-2">2-Dart Finish</button>
+      <button class="menu-mode-btn" id="btn-mode-3">3-Dart Finish</button>
+      <button class="menu-mode-btn" id="btn-mode-minus-1">1x Minusrechnen</button>
+      <button class="menu-mode-btn" id="btn-mode-minus-2">2x Minusrechnen</button>
+      <button class="menu-mode-btn" id="btn-mode-game">Game Mode</button>
+      <button class="menu-mode-btn" id="btn-mode-pathgame">Der richtige Weg</button>
+    </div>
   </div>
 
 
@@ -907,12 +926,15 @@
   <!-- Minusrechnen View -->
   <div id="minus-view"
     style="display:none; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; padding: 20px;">
-    <h1 class="comic-title" style="font-size: 40px; margin-bottom: 30px;">Minusrechnen</h1>
+    <h1 class="comic-title" style="font-size: 40px; margin-bottom: 30px;" id="minus-title">Minusrechnen</h1>
 
     <div
-      style="font-size: 55px; font-weight: 900; color: #FFF; margin-bottom: 30px; font-family: 'Bangers', cursive; letter-spacing: 2px; text-shadow: 2px 2px 0 #000;">
-      <span id="minus-task-start">120</span> - <span id="minus-task-sub" style="color: var(--accent);">60</span> =
-      <span id="minus-task-input" style="color: var(--accent-green);">?</span>
+      style="font-size: 45px; font-weight: 900; color: #FFF; margin-bottom: 30px; font-family: 'Bangers', cursive; letter-spacing: 2px; text-shadow: 2px 2px 0 #000; text-align: center; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px;">
+      <span id="minus-task-start">120</span>
+      <span>-</span> <span id="minus-task-sub" style="color: var(--accent);">60</span>
+      <span id="minus-task-op2" style="display:none;">-</span> <span id="minus-task-sub2"
+        style="color: var(--accent); display:none;">20</span>
+      <span>=</span> <span id="minus-task-input" style="color: var(--accent-green);">?</span>
     </div>
 
     <div class="simple-numpad">
@@ -930,6 +952,60 @@
       <div class="simple-btn btn-enter" data-action="enter">OK</div>
     </div>
 
+  </div>
+
+  <!-- Game Mode View (Kopfrechnen) -->
+  <div id="game-mode-view"
+    style="display:none; flex-direction: column; align-items: center; justify-content: flex-start; flex-grow: 1; padding: 20px; width: 100%; max-width: 500px; margin: 0 auto;">
+    <h1 class="comic-title" style="font-size: 40px; margin-bottom: 20px;">Game Mode</h1>
+
+    <!-- Speed Selection -->
+    <div id="game-mode-speed-select" style="display: flex; flex-direction: column; gap: 15px; width: 100%;">
+      <p style="text-align: center; color: #BBB; margin-bottom: 10px; font-size: 18px;">Wähle deine Geschwindigkeit:</p>
+      <button class="path-option-btn" data-speed="3000">Beginner (3 Sek.)</button>
+      <button class="path-option-btn" data-speed="2000">Amateur (2 Sek.)</button>
+      <button class="path-option-btn" data-speed="1000">Profi (1 Sek.)</button>
+    </div>
+
+    <!-- Active Game -->
+    <div id="game-mode-active" style="display: none; flex-direction: column; align-items: center; width: 100%;">
+      <div style="font-size: 20px; color: #888; text-transform: uppercase; font-weight: 600; margin-bottom: 10px;">Start
+        Score</div>
+      <div id="game-mode-start-score"
+        style="font-size: 80px; font-weight: 900; color: #FFF; margin-bottom: 20px; font-family: 'Bangers', cursive; text-shadow: 2px 2px 0 #000;">
+        501</div>
+
+      <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; min-height: 50px;">
+        <div class="dart-text" id="gm-dart-1"
+          style="font-size: 30px; opacity: 0; transition: opacity 0.3s; color: var(--accent);"></div>
+        <div class="dart-text" id="gm-dart-2"
+          style="font-size: 30px; opacity: 0; transition: opacity 0.3s; color: var(--accent);"></div>
+        <div class="dart-text" id="gm-dart-3"
+          style="font-size: 30px; opacity: 0; transition: opacity 0.3s; color: var(--accent);"></div>
+      </div>
+
+      <div id="game-mode-input-area" style="display: none; flex-direction: column; align-items: center; width: 100%;">
+        <div
+          style="font-size: 40px; font-weight: 900; color: #FFF; margin-bottom: 20px; font-family: 'Bangers', cursive; letter-spacing: 2px;">
+          Ergebnis = <span id="game-mode-input" style="color: var(--accent-green);">?</span>
+        </div>
+
+        <div class="simple-numpad" style="margin-bottom: 20px;">
+          <div class="simple-btn gm-btn" data-val="1">1</div>
+          <div class="simple-btn gm-btn" data-val="2">2</div>
+          <div class="simple-btn gm-btn" data-val="3">3</div>
+          <div class="simple-btn gm-btn" data-val="4">4</div>
+          <div class="simple-btn gm-btn" data-val="5">5</div>
+          <div class="simple-btn gm-btn" data-val="6">6</div>
+          <div class="simple-btn gm-btn" data-val="7">7</div>
+          <div class="simple-btn gm-btn" data-val="8">8</div>
+          <div class="simple-btn gm-btn" data-val="9">9</div>
+          <div class="simple-btn btn-del gm-btn" data-action="del">DEL</div>
+          <div class="simple-btn gm-btn" data-val="0">0</div>
+          <div class="simple-btn btn-enter gm-btn" data-action="enter">OK</div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Der richtige Weg View -->
@@ -1019,8 +1095,9 @@
     let sessionLog = [];
     let timerElapsedTime = 0;
     let isTimerPaused = false;
-    let minusGameState = { expected: 0, currentInput: "" };
+    let minusGameState = { expected: 0, currentInput: "", mode: 1 };
     let pathGameState = { expectedIdx: 0 };
+    let gmGameState = { startScore: 501, expected: 0, currentInput: "", speed: 3000, dartInterval: null, currentDart: 0, darts: [] };
 
     // --- Checkout Alg & Data ---
     function getCheckoutPath(score, dartsLeft) {
@@ -1112,37 +1189,72 @@
       if (DOM.gameMain) DOM.gameMain.style.display = 'none';
       if (DOM.minusView) DOM.minusView.style.display = 'none';
       if (DOM.pathView) DOM.pathView.style.display = 'none';
+      if (DOM.gameModeView) DOM.gameModeView.style.display = 'none';
       history = [];
+      clearTimeout(gmGameState.dartInterval);
     }
 
-    function startMinusGame() {
+    function startMinusGame(numbersCount) {
+      minusGameState.mode = numbersCount;
       DOM.menuView.style.display = 'none';
       DOM.gameHeader.style.display = 'flex';
       DOM.btnToggleInput.style.display = 'none';
       DOM.gameMain.style.display = 'none';
       if (DOM.pathView) DOM.pathView.style.display = 'none';
+      if (DOM.gameModeView) DOM.gameModeView.style.display = 'none';
       DOM.minusView.style.display = 'flex';
+
+      DOM.minusTitle.innerText = numbersCount === 1 ? "1x Minusrechnen" : "2x Minusrechnen";
+
       nextMinusTask();
     }
 
     function nextMinusTask() {
       let target = Math.floor(Math.random() * (170 - 60 + 1)) + 60;
-      let subVal = 0;
+      let subVal1 = 0;
+      let subVal2 = 0;
 
-      let subType = Math.floor(Math.random() * 3);
-      let baseNum = Math.floor(Math.random() * 20) + 1;
+      let subType1 = Math.floor(Math.random() * 3);
+      let baseNum1 = Math.floor(Math.random() * 20) + 1;
 
-      if (subType === 0) subVal = baseNum;
-      else if (subType === 1) subVal = baseNum * 2;
-      else if (subType === 2) subVal = baseNum * 3;
+      if (subType1 === 0) subVal1 = baseNum1;
+      else if (subType1 === 1) subVal1 = baseNum1 * 2;
+      else if (subType1 === 2) subVal1 = baseNum1 * 3;
 
-      if (subVal >= target) subVal = Math.floor(target / 2);
+      if (subVal1 >= target) subVal1 = Math.floor(target / 2);
 
-      minusGameState.expected = target - subVal;
+      DOM.minusTaskSub.innerText = subVal1;
+      let expected = target - subVal1;
+
+      if (minusGameState.mode === 2) {
+        let maxSub2 = expected - 2; // Leave at least 2 remaining
+        if (maxSub2 < 2) maxSub2 = 2;
+
+        let subType2 = Math.floor(Math.random() * 3);
+        let baseNum2 = Math.floor(Math.random() * 20) + 1;
+
+        if (subType2 === 0) subVal2 = baseNum2;
+        else if (subType2 === 1) subVal2 = baseNum2 * 2;
+        else if (subType2 === 2) subVal2 = baseNum2 * 3;
+
+        // Ensure we don't drop below 2 total (or some reasonable number)
+        if (subVal2 >= expected) {
+          subVal2 = Math.floor(expected / 2) || 1;
+        }
+
+        expected -= subVal2;
+        DOM.minusTaskSub2.innerText = subVal2;
+        DOM.minusTaskOp2.style.display = 'inline';
+        DOM.minusTaskSub2.style.display = 'inline';
+      } else {
+        DOM.minusTaskOp2.style.display = 'none';
+        DOM.minusTaskSub2.style.display = 'none';
+      }
+
+      minusGameState.expected = expected;
       minusGameState.currentInput = "";
 
       DOM.minusTaskStart.innerText = target;
-      DOM.minusTaskSub.innerText = subVal;
       DOM.minusTaskInput.innerText = "?";
       DOM.minusTaskInput.style.color = 'var(--accent-green)';
     }
@@ -1153,6 +1265,7 @@
       DOM.btnToggleInput.style.display = 'none';
       DOM.gameMain.style.display = 'none';
       if (DOM.minusView) DOM.minusView.style.display = 'none';
+      if (DOM.gameModeView) DOM.gameModeView.style.display = 'none';
       DOM.pathView.style.display = 'flex';
       nextPathTask();
     }
@@ -1226,6 +1339,135 @@
           btn.style.borderColor = 'rgba(255, 255, 255, 0.1)';
           btn.disabled = false;
         }
+      }
+    }
+
+    // --- Game Mode (Kopfrechnen) Alg ---
+    function startGameModeSelection() {
+      DOM.menuView.style.display = 'none';
+      DOM.gameHeader.style.display = 'flex';
+      DOM.btnToggleInput.style.display = 'none';
+      DOM.gameMain.style.display = 'none';
+      if (DOM.minusView) DOM.minusView.style.display = 'none';
+      if (DOM.pathView) DOM.pathView.style.display = 'none';
+
+      DOM.gameModeView.style.display = 'flex';
+      document.getElementById('game-mode-speed-select').style.display = 'flex';
+      document.getElementById('game-mode-active').style.display = 'none';
+      document.getElementById('game-mode-input-area').style.display = 'none';
+    }
+
+    function generateRealisticDart() {
+      // Simulate throwing around T20, T19, T18, Bull etc.
+      const zones = [
+        { base: 20, weight: 50 },
+        { base: 19, weight: 30 },
+        { base: 18, weight: 10 },
+        { base: 17, weight: 5 },
+        { base: 25, weight: 5 } // Bull
+      ];
+
+      // Select base zone
+      let rand = Math.random() * 100;
+      let selectedBase = 20;
+      let acc = 0;
+      for (let z of zones) {
+        acc += z.weight;
+        if (rand <= acc) {
+          selectedBase = z.base;
+          break;
+        }
+      }
+
+      if (selectedBase === 25) {
+        return Math.random() > 0.5 ? { score: 50, name: 'Bull' } : { score: 25, name: '25' };
+      }
+
+      // Determine hit type around the base
+      // 30% Triple, 10% Double, 10% treble miss (e.g., T5 or T1), 50% single
+      let hitType = Math.random();
+      let name = "";
+      let score = 0;
+
+      if (hitType < 0.30) {
+        name = "T" + selectedBase;
+        score = selectedBase * 3;
+      } else if (hitType < 0.40) {
+        name = "D" + selectedBase;
+        score = selectedBase * 2;
+      } else if (hitType < 0.50) {
+        // Missed into neighboring triple/single
+        const neighbors = {
+          20: [1, 5], 19: [3, 7], 18: [1, 4], 17: [2, 3]
+        };
+        let neighbor = neighbors[selectedBase][Math.floor(Math.random() * 2)];
+        if (Math.random() > 0.5) {
+          name = "T" + neighbor;
+          score = neighbor * 3;
+        } else {
+          name = "" + neighbor;
+          score = neighbor;
+        }
+      } else {
+        name = "" + selectedBase;
+        score = selectedBase;
+      }
+
+      return { score, name };
+    }
+
+    function playMentalGame(speed) {
+      document.getElementById('game-mode-speed-select').style.display = 'none';
+      document.getElementById('game-mode-active').style.display = 'flex';
+      document.getElementById('game-mode-input-area').style.display = 'none';
+
+      // Reset UI
+      for (let i = 1; i <= 3; i++) {
+        const el = document.getElementById('gm-dart-' + i);
+        el.style.opacity = '0';
+        el.innerText = '';
+      }
+      gmGameState.currentInput = "";
+      document.getElementById('game-mode-input').innerText = "?";
+      document.getElementById('game-mode-input').style.color = 'var(--accent-green)';
+
+      // Select a random start score from the optimal checkouts or any finishable number
+      const validTargets = Object.keys(CONSTANTS.OPTIMAL_CHECKOUTS).map(Number).filter(x => x >= 40 && x <= 170 && !CONSTANTS.BOGEY.includes(x));
+      gmGameState.startScore = validTargets[Math.floor(Math.random() * validTargets.length)];
+
+      document.getElementById('game-mode-start-score').innerText = gmGameState.startScore;
+
+      gmGameState.darts = [
+        generateRealisticDart(),
+        generateRealisticDart(),
+        generateRealisticDart()
+      ];
+
+      let sum = gmGameState.darts.reduce((a, b) => a + b.score, 0);
+      gmGameState.expected = gmGameState.startScore - sum;
+      gmGameState.speed = speed;
+      gmGameState.currentDart = 0;
+
+      showNextMentalDart();
+    }
+
+    function showNextMentalDart() {
+      if (gmGameState.currentDart < 3) {
+        timerElapsedTime = 0;
+        gmGameState.dartInterval = setTimeout(() => {
+          const dartData = gmGameState.darts[gmGameState.currentDart];
+          const el = document.getElementById('gm-dart-' + (gmGameState.currentDart + 1));
+          el.innerText = dartData.name;
+          el.style.opacity = '1';
+
+          gmGameState.currentDart++;
+          showNextMentalDart();
+        }, gmGameState.speed);
+      } else {
+        // Done showing darts, show input area
+        setTimeout(() => {
+          document.getElementById('game-mode-input-area').style.display = 'flex';
+        }, 500); // slight pause before input
       }
     }
 
@@ -1541,14 +1783,20 @@
         boardWrap: document.getElementById('board-wrap'),
         svgBoard: document.getElementById('svg-board'),
         zoomReticle: document.getElementById('zoom-reticle'),
-        btnModeMinus: document.getElementById('btn-mode-minus'),
+        btnModeMinus1: document.getElementById('btn-mode-minus-1'),
+        btnModeMinus2: document.getElementById('btn-mode-minus-2'),
+        btnModeGame: document.getElementById('btn-mode-game'),
         minusView: document.getElementById('minus-view'),
+        minusTitle: document.getElementById('minus-title'),
         minusTaskStart: document.getElementById('minus-task-start'),
         minusTaskSub: document.getElementById('minus-task-sub'),
+        minusTaskSub2: document.getElementById('minus-task-sub2'),
+        minusTaskOp2: document.getElementById('minus-task-op2'),
         minusTaskInput: document.getElementById('minus-task-input'),
         btnModePathgame: document.getElementById('btn-mode-pathgame'),
         pathView: document.getElementById('path-view'),
-        pathTarget: document.getElementById('path-target')
+        pathTarget: document.getElementById('path-target'),
+        gameModeView: document.getElementById('game-mode-view')
       };
 
       initSVG();
@@ -1666,7 +1914,9 @@
       const btnMode3 = document.getElementById('btn-mode-3');
       if (btnMode3) btnMode3.addEventListener('click', () => setGameMode('3-dart'));
 
-      if (DOM.btnModeMinus) DOM.btnModeMinus.addEventListener('click', () => startMinusGame());
+      if (DOM.btnModeMinus1) DOM.btnModeMinus1.addEventListener('click', () => startMinusGame(1));
+      if (DOM.btnModeMinus2) DOM.btnModeMinus2.addEventListener('click', () => startMinusGame(2));
+      if (DOM.btnModeGame) DOM.btnModeGame.addEventListener('click', () => startGameModeSelection());
       if (DOM.btnModePathgame) DOM.btnModePathgame.addEventListener('click', () => startPathGame());
 
       const btnBackMenu = document.getElementById('btn-back-menu');
@@ -1747,6 +1997,57 @@
                 minusGameState.currentInput = "";
                 DOM.minusTaskInput.innerText = "?";
                 DOM.minusTaskInput.style.color = 'var(--accent-green)';
+              }, 600);
+            }
+          }
+        });
+      });
+
+      // Game Mode Event Listeners
+      document.getElementById('game-mode-speed-select').querySelectorAll('.path-option-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const speed = parseInt(btn.getAttribute('data-speed'));
+          playMentalGame(speed);
+        });
+      });
+
+      document.getElementById('game-mode-input-area').querySelectorAll('.gm-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (navigator.vibrate) navigator.vibrate(10);
+          const action = btn.getAttribute('data-action');
+          const val = btn.getAttribute('data-val');
+
+          const inputEl = document.getElementById('game-mode-input');
+
+          if (val !== null) {
+            if (gmGameState.currentInput.length < 3) {
+              gmGameState.currentInput += val;
+              inputEl.innerText = gmGameState.currentInput;
+              inputEl.style.color = '#FFF';
+            }
+          } else if (action === 'del') {
+            gmGameState.currentInput = gmGameState.currentInput.slice(0, -1);
+            inputEl.innerText = gmGameState.currentInput || "?";
+            if (!gmGameState.currentInput) inputEl.style.color = 'var(--accent-green)';
+          } else if (action === 'enter') {
+            if (gmGameState.currentInput === "") return;
+            const numInput = parseInt(gmGameState.currentInput);
+            if (numInput === gmGameState.expected) {
+              inputEl.style.color = 'var(--accent-green)';
+              inputEl.style.transform = 'scale(1.2)';
+              if (navigator.vibrate) navigator.vibrate(50);
+              setTimeout(() => {
+                inputEl.style.transform = 'scale(1)';
+                playMentalGame(gmGameState.speed); // Restart same speed
+              }, 800);
+            } else {
+              inputEl.style.color = 'var(--accent)';
+              inputEl.innerText = "Falsch";
+              if (navigator.vibrate) navigator.vibrate([30, 50, 30]);
+              setTimeout(() => {
+                gmGameState.currentInput = "";
+                inputEl.innerText = "?";
+                inputEl.style.color = 'var(--accent-green)';
               }, 600);
             }
           }
