@@ -859,7 +859,8 @@
       <button class="menu-mode-btn" id="btn-mode-minus-1">1x Minusrechnen</button>
       <button class="menu-mode-btn" id="btn-mode-minus-2">2x Minusrechnen</button>
       <button class="menu-mode-btn" id="btn-mode-game">Game Mode</button>
-      <button class="menu-mode-btn" id="btn-mode-pathgame">Der richtige Weg</button>
+      <button class="menu-mode-btn" id="btn-mode-double">Das richtige Doppel</button>
+      <button class="menu-mode-btn" id="btn-mode-pathgame" style="grid-column: span 2;">Der richtige Weg</button>
     </div>
   </div>
 
@@ -974,8 +975,8 @@
 
   <!-- Game Mode View (Kopfrechnen) -->
   <div id="game-mode-view"
-    style="display:none; flex-direction: column; align-items: center; justify-content: flex-start; flex-grow: 1; padding: 20px; width: 100%; max-width: 500px; margin: 0 auto;">
-    <h1 class="comic-title" style="font-size: 40px; margin-bottom: 20px;">Game Mode</h1>
+    style="display:none; flex-direction: column; align-items: center; justify-content: flex-start; flex-grow: 1; padding: 10px; width: 100%; max-width: 500px; margin: 0 auto;">
+    <h1 class="comic-title" style="font-size: 30px; margin-bottom: 5px;">Game Mode</h1>
 
     <!-- Speed Selection -->
     <div id="game-mode-speed-select" style="display: flex; flex-direction: column; gap: 15px; width: 100%;">
@@ -987,21 +988,21 @@
 
     <!-- Active Game -->
     <div id="game-mode-active" style="display: none; flex-direction: column; align-items: center; width: 100%;">
-      <div style="font-size: 20px; color: #888; text-transform: uppercase; font-weight: 600; margin-bottom: 10px;">Start
+      <div style="font-size: 16px; color: #888; text-transform: uppercase; font-weight: 600; margin-bottom: 0px;">Start
         Score</div>
       <div id="game-mode-start-score"
-        style="font-size: 80px; font-weight: 900; color: #FFF; margin-bottom: 20px; font-family: 'Carter One', cursive; text-shadow: 2px 2px 0 #000;">
+        style="font-size: 65px; font-weight: 900; color: #FFF; margin-bottom: 15px; font-family: 'Carter One', cursive; text-shadow: 2px 2px 0 #000;">
         501</div>
 
-      <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; min-height: 50px;">
+      <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 15px; min-height: 40px;">
         <div class="dart-text" id="gm-dart-1"
-          style="font-family: 'Carter One', cursive; font-size: 35px; opacity: 0; transition: opacity 0.3s; color: var(--accent);">
+          style="font-family: 'Carter One', cursive; font-size: 30px; opacity: 0; transition: opacity 0.3s; color: var(--accent);">
         </div>
         <div class="dart-text" id="gm-dart-2"
-          style="font-family: 'Carter One', cursive; font-size: 35px; opacity: 0; transition: opacity 0.3s; color: var(--accent);">
+          style="font-family: 'Carter One', cursive; font-size: 30px; opacity: 0; transition: opacity 0.3s; color: var(--accent);">
         </div>
         <div class="dart-text" id="gm-dart-3"
-          style="font-family: 'Carter One', cursive; font-size: 35px; opacity: 0; transition: opacity 0.3s; color: var(--accent);">
+          style="font-family: 'Carter One', cursive; font-size: 30px; opacity: 0; transition: opacity 0.3s; color: var(--accent);">
         </div>
       </div>
 
@@ -1027,6 +1028,40 @@
           <div class="simple-btn btn-del gm-btn" data-action="del">DEL</div>
           <div class="simple-btn gm-btn" data-val="0">0</div>
           <div class="simple-btn btn-enter gm-btn" data-action="enter">OK</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Das richtige Doppel View -->
+  <div id="double-game-view"
+    style="display:none; flex-direction: column; align-items: center; justify-content: flex-start; flex-grow: 1; padding: 10px; width: 100%; max-width: 500px; margin: 0 auto;">
+    <h1 class="comic-title" style="font-size: 30px; margin-bottom: 5px;">Das richtige Doppel</h1>
+
+    <div id="double-game-active" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+      <div style="font-size: 16px; color: #888; text-transform: uppercase; font-weight: 600; margin-bottom: 0px;">Start
+        Score</div>
+      <div id="double-game-start-score"
+        style="font-size: 65px; font-weight: 900; color: #FFF; margin-bottom: 15px; font-family: 'Carter One', cursive; text-shadow: 2px 2px 0 #000;">
+        80</div>
+
+      <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 15px; min-height: 40px;">
+        <div class="dart-text" id="dg-dart-1"
+          style="font-family: 'Carter One', cursive; font-size: 30px; opacity: 0; transition: opacity 0.3s; color: var(--accent);">
+        </div>
+        <div class="dart-text" id="dg-dart-2"
+          style="font-family: 'Carter One', cursive; font-size: 30px; opacity: 0; transition: opacity 0.3s; color: var(--accent);">
+        </div>
+      </div>
+
+      <div id="double-game-input-area" style="display: none; flex-direction: column; align-items: center; width: 100%;">
+        <div
+          style="font-size: 26px; font-weight: 900; color: #FFF; margin-bottom: 10px; font-family: 'Bangers', cursive; letter-spacing: 2px;">
+          Welches Doppel? = <span id="double-game-input" style="color: var(--accent-green);">?</span>
+        </div>
+
+        <div id="double-numpad"
+          style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: 100%; max-width: 380px; margin-bottom: 15px;">
         </div>
       </div>
     </div>
@@ -1120,7 +1155,19 @@
     let timerElapsedTime = 0;
     let isTimerPaused = false;
     let minusGameState = { expected: 0, currentInput: "", mode: 1 };
-    let pathGameState = { expectedIdx: 0 };
+    let pathGameState = {
+      targetScore: 0,
+      expectedIdx: 0
+    };
+
+    let doubleGameState = {
+      startScore: 0,
+      expectedDouble: "",
+      darts: [],
+      currentDart: 0,
+      dartInterval: null
+    };
+
     let gmGameState = { startScore: 501, expected: 0, currentInput: "", speed: 3000, dartInterval: null, currentDart: 0, darts: [] };
 
     // --- Checkout Alg & Data ---
@@ -1214,6 +1261,7 @@
       if (DOM.minusView) DOM.minusView.style.display = 'none';
       if (DOM.pathView) DOM.pathView.style.display = 'none';
       if (DOM.gameModeView) DOM.gameModeView.style.display = 'none';
+      if (DOM.doubleGameView) DOM.doubleGameView.style.display = 'none';
       history = [];
       clearTimeout(gmGameState.dartInterval);
     }
@@ -1226,6 +1274,7 @@
       DOM.gameMain.style.display = 'none';
       if (DOM.pathView) DOM.pathView.style.display = 'none';
       if (DOM.gameModeView) DOM.gameModeView.style.display = 'none';
+      if (DOM.doubleGameView) DOM.doubleGameView.style.display = 'none';
       DOM.minusView.style.display = 'flex';
 
       DOM.minusTitle.innerText = numbersCount === 1 ? "1x Minusrechnen" : "2x Minusrechnen";
@@ -1290,6 +1339,7 @@
       DOM.gameMain.style.display = 'none';
       if (DOM.minusView) DOM.minusView.style.display = 'none';
       if (DOM.gameModeView) DOM.gameModeView.style.display = 'none';
+      if (DOM.doubleGameView) DOM.doubleGameView.style.display = 'none';
       DOM.pathView.style.display = 'flex';
       nextPathTask();
     }
@@ -1374,6 +1424,7 @@
       DOM.gameMain.style.display = 'none';
       if (DOM.minusView) DOM.minusView.style.display = 'none';
       if (DOM.pathView) DOM.pathView.style.display = 'none';
+      if (DOM.doubleGameView) DOM.doubleGameView.style.display = 'none';
 
       DOM.gameModeView.style.display = 'flex';
       document.getElementById('game-mode-speed-select').style.display = 'flex';
@@ -1527,7 +1578,6 @@
 
     function showNextMentalDart() {
       if (gmGameState.currentDart < gmGameState.darts.length) {
-        timerElapsedTime = 0;
         gmGameState.dartInterval = setTimeout(() => {
           const dartData = gmGameState.darts[gmGameState.currentDart];
           const el = document.getElementById('gm-dart-' + (gmGameState.currentDart + 1));
@@ -1538,10 +1588,130 @@
           showNextMentalDart();
         }, gmGameState.speed);
       } else {
-        // Done showing darts, show input area
         setTimeout(() => {
           document.getElementById('game-mode-input-area').style.display = 'flex';
-        }, 500); // slight pause before input
+        }, 500);
+      }
+    }
+
+    // --- Double Game Logic ---
+    function initDoubleNumpad() {
+      const grid = document.getElementById('double-numpad');
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      const doubles = [];
+      for (let i = 20; i >= 1; i--) {
+        doubles.push('D' + i);
+      }
+
+      doubles.forEach(d => {
+        grid.innerHTML += `<div class="numpad-btn btn-green dg-btn" data-val="${d}">${d}</div>`;
+      });
+      grid.innerHTML += `<div class="numpad-btn btn-bull dg-btn" data-val="Bull" style="grid-column: span 4;">Bull (D25)</div>`;
+
+      grid.querySelectorAll('.dg-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (navigator.vibrate) navigator.vibrate(20);
+          const val = btn.getAttribute('data-val');
+          const inputEl = document.getElementById('double-game-input');
+          inputEl.innerText = val;
+
+          if (val === doubleGameState.expectedDouble) {
+            inputEl.style.color = 'var(--accent-green)';
+            inputEl.style.transform = 'scale(1.2)';
+            if (navigator.vibrate) navigator.vibrate(50);
+            setTimeout(() => {
+              inputEl.style.transform = 'scale(1)';
+              startDoubleGame();
+            }, 800);
+          } else {
+            inputEl.style.color = 'var(--accent)';
+            inputEl.innerText = "Falsch";
+            if (navigator.vibrate) navigator.vibrate([30, 50, 30]);
+            setTimeout(() => {
+              inputEl.innerText = "?";
+              inputEl.style.color = 'var(--accent-green)';
+            }, 600);
+          }
+        });
+      });
+    }
+
+    function startDoubleGame() {
+      DOM.menuView.style.display = 'none';
+      DOM.gameHeader.style.display = 'flex';
+      DOM.btnToggleInput.style.display = 'none';
+      DOM.gameMain.style.display = 'none';
+      if (DOM.minusView) DOM.minusView.style.display = 'none';
+      if (DOM.pathView) DOM.pathView.style.display = 'none';
+      if (DOM.gameModeView) DOM.gameModeView.style.display = 'none';
+      DOM.doubleGameView.style.display = 'flex';
+
+      document.getElementById('double-game-input-area').style.display = 'none';
+      document.getElementById('double-game-input').innerText = '?';
+      document.getElementById('double-game-input').style.color = 'var(--accent-green)';
+
+      for (let i = 1; i <= 2; i++) {
+        document.getElementById('dg-dart-' + i).style.opacity = '0';
+      }
+
+      const numDarts = Math.random() > 0.5 ? 1 : 2;
+      let validDartsGenerated = false;
+      let attempts = 0;
+
+      while (!validDartsGenerated && attempts < 100) {
+        attempts++;
+        const targetDoubleVal = Math.floor(Math.random() * 20) + 1;
+        const targetDoubleName = 'D' + targetDoubleVal;
+        const targetDoubleScore = targetDoubleVal * 2;
+
+        let darts = [];
+        let runningSum = targetDoubleScore;
+
+        for (let i = 0; i < numDarts; i++) {
+          const d = generateRealisticDart();
+          darts.unshift(d); // Push front so we reveal them forward
+          runningSum += d.score;
+        }
+
+        if (runningSum <= 170 && !CONSTANTS.BOGEY.includes(runningSum)) {
+          doubleGameState.startScore = runningSum;
+          doubleGameState.expectedDouble = targetDoubleName;
+          doubleGameState.darts = darts;
+          validDartsGenerated = true;
+        }
+      }
+
+      // Fallback
+      if (!validDartsGenerated) {
+        doubleGameState.startScore = 40;
+        doubleGameState.expectedDouble = 'D10';
+        doubleGameState.darts = [{ score: 20, name: '20' }];
+      }
+
+      document.getElementById('double-game-start-score').innerText = doubleGameState.startScore;
+
+      doubleGameState.currentDart = 0;
+      clearTimeout(doubleGameState.dartInterval);
+      showNextDoubleDart();
+    }
+
+    function showNextDoubleDart() {
+      if (doubleGameState.currentDart < doubleGameState.darts.length) {
+        doubleGameState.dartInterval = setTimeout(() => {
+          const dartData = doubleGameState.darts[doubleGameState.currentDart];
+          const el = document.getElementById('dg-dart-' + (doubleGameState.currentDart + 1));
+          el.innerText = dartData.name;
+          el.style.opacity = '1';
+
+          doubleGameState.currentDart++;
+          showNextDoubleDart();
+        }, 1500); // 1.5 seconds per setup dart
+      } else {
+        setTimeout(() => {
+          document.getElementById('double-game-input-area').style.display = 'flex';
+        }, 500);
       }
     }
 
@@ -1860,6 +2030,8 @@
         btnModeMinus1: document.getElementById('btn-mode-minus-1'),
         btnModeMinus2: document.getElementById('btn-mode-minus-2'),
         btnModeGame: document.getElementById('btn-mode-game'),
+        btnModeDouble: document.getElementById('btn-mode-double'),
+        btnModePathgame: document.getElementById('btn-mode-pathgame'),
         minusView: document.getElementById('minus-view'),
         minusTitle: document.getElementById('minus-title'),
         minusTaskStart: document.getElementById('minus-task-start'),
@@ -1867,10 +2039,10 @@
         minusTaskSub2: document.getElementById('minus-task-sub2'),
         minusTaskOp2: document.getElementById('minus-task-op2'),
         minusTaskInput: document.getElementById('minus-task-input'),
-        btnModePathgame: document.getElementById('btn-mode-pathgame'),
+        gameModeView: document.getElementById('game-mode-view'),
+        doubleGameView: document.getElementById('double-game-view'),
         pathView: document.getElementById('path-view'),
-        pathTarget: document.getElementById('path-target'),
-        gameModeView: document.getElementById('game-mode-view')
+        pathTarget: document.getElementById('path-target')
       };
 
       initSVG();
@@ -1983,14 +2155,12 @@
       }
 
       // Menu Button Listeners
-      const btnMode2 = document.getElementById('btn-mode-2');
-      if (btnMode2) btnMode2.addEventListener('click', () => setGameMode('2-dart'));
-      const btnMode3 = document.getElementById('btn-mode-3');
-      if (btnMode3) btnMode3.addEventListener('click', () => setGameMode('3-dart'));
-
+      if (DOM.btnMode2) DOM.btnMode2.addEventListener('click', () => setGameMode('2-dart'));
+      if (DOM.btnMode3) DOM.btnMode3.addEventListener('click', () => setGameMode('3-dart'));
       if (DOM.btnModeMinus1) DOM.btnModeMinus1.addEventListener('click', () => startMinusGame(1));
       if (DOM.btnModeMinus2) DOM.btnModeMinus2.addEventListener('click', () => startMinusGame(2));
       if (DOM.btnModeGame) DOM.btnModeGame.addEventListener('click', () => startGameModeSelection());
+      if (DOM.btnModeDouble) DOM.btnModeDouble.addEventListener('click', () => startDoubleGame());
       if (DOM.btnModePathgame) DOM.btnModePathgame.addEventListener('click', () => startPathGame());
 
       const btnBackMenu = document.getElementById('btn-back-menu');
@@ -2164,6 +2334,7 @@
       });
 
       // Initial Load
+      initDoubleNumpad();
       loadState();
     }
 
